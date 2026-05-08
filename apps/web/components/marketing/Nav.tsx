@@ -10,9 +10,9 @@ export function Nav() {
           className="inline-flex items-center gap-2.5 text-[15px] font-semibold tracking-[-0.005em] text-ink"
         >
           <span className="inline-flex h-[26px] w-[26px] items-center justify-center rounded-md bg-gradient-to-br from-warm to-warm-2 font-mono text-[11px] font-bold tracking-[-0.02em] text-paper">
-            360
+            F
           </span>
-          CRMOS360
+          FlowAIOS
         </Link>
 
         <nav className="flex justify-center gap-7 text-[13px]">

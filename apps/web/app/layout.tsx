@@ -24,10 +24,18 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: 'CRMOS360 · AI OS สำหรับ Customer Operations',
+  title: 'FlowAIOS · AI OS สำหรับ Customer Operations',
   description:
-    'CRMOS360 คือ AI Operating System สำหรับ Customer Operations และ Social Commerce ' +
+    'FlowAIOS คือ AI Operating System สำหรับ Customer Operations และ Social Commerce ' +
     'รวมแชท ลูกค้า ออเดอร์ Workflow และ AI Agents ไว้ในระบบเดียว',
+  metadataBase: new URL('https://flowaios.vercel.app'),
+  openGraph: {
+    title: 'FlowAIOS',
+    description: 'AI Operating System for Customer Operations',
+    url: 'https://flowaios.vercel.app',
+    siteName: 'FlowAIOS',
+    type: 'website',
+  },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

@@ -219,6 +219,7 @@ export const conversations = pgTable(
     assigneeId: uuid('assignee_id').references(() => authUsers.id, { onDelete: 'set null' }),
     lastMessageAt: timestamp('last_message_at', { withTimezone: true }).defaultNow().notNull(),
     unreadCount: integer('unread_count').notNull().default(0),
+    autoReplyEnabled: boolean('auto_reply_enabled').notNull().default(true),
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
     updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
   },
@@ -251,6 +252,7 @@ export const messages = pgTable(
     body: text('body'),
     attachments: jsonb('attachments').notNull().default(sql`'[]'::jsonb`),
     raw: jsonb('raw'),
+    aiGenerated: boolean('ai_generated').notNull().default(false),
     sentAt: timestamp('sent_at', { withTimezone: true }).defaultNow().notNull(),
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
   },
@@ -353,6 +355,32 @@ export const aiLogs = pgTable(
   ],
 ).enableRLS();
 
+// --- audit_logs ---
+
+export const auditLogs = pgTable(
+  'audit_logs',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    orgId: uuid('org_id')
+      .notNull()
+      .references(() => organizations.id, { onDelete: 'cascade' }),
+    actorUserId: uuid('actor_user_id').references(() => authUsers.id, { onDelete: 'set null' }),
+    action: text('action').notNull(),
+    targetKind: text('target_kind'),
+    targetId: text('target_id'),
+    metadata: jsonb('metadata').notNull().default(sql`'{}'::jsonb`),
+    createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+  },
+  (t) => [
+    index('audit_logs_org_created_idx').on(t.orgId, t.createdAt),
+    pgPolicy('audit_logs_admin_select', {
+      for: 'select',
+      to: 'authenticated',
+      using: sql`public.is_org_admin(${t.orgId})`,
+    }),
+  ],
+).enableRLS();
+
 // Inferred types for app code.
 export type Organization = typeof organizations.$inferSelect;
 export type NewOrganization = typeof organizations.$inferInsert;
@@ -362,3 +390,4 @@ export type Conversation = typeof conversations.$inferSelect;
 export type Message = typeof messages.$inferSelect;
 export type CustomerMemory = typeof customerMemory.$inferSelect;
 export type AiLog = typeof aiLogs.$inferSelect;
+export type AuditLog = typeof auditLogs.$inferSelect;

@@ -57,7 +57,7 @@ export function OnboardingForm({ defaultName }: { defaultName: string }) {
       <div className="space-y-2">
         <Label htmlFor="slug">Workspace URL</Label>
         <div className="flex items-center gap-2">
-          <span className="text-sm text-muted-foreground">crmos360.app/</span>
+          <span className="text-sm text-muted-foreground">flowaios.app/</span>
           <Input
             id="slug"
             value={slug}

@@ -1,0 +1,667 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>CRMOS360 · Operations Cockpit (Direction 3)</title>
+<style>
+  /*
+   * Direction 3 — Operations Cockpit
+   * Philosophy:    Linear × Granola × Cron — sophisticated dark UI with warmth
+   * Palette:       charcoal, graphite, soft white text, warm orange + mint accents
+   * Typography:    Inter for body + JetBrains Mono for technical labels, tight tracking
+   * Motion:        smooth easing on hover, subtle grid pulse on tab switch
+   * Vibe:          command center for ops teams — dark but warm, never cyberpunk
+   */
+  :root {
+    --bg:       #0E1116;
+    --bg-2:     #141921;
+    --bg-3:     #1B2230;
+    --line:     #232B3A;
+    --line-2:   #303A4D;
+    --ink:      #F4F2EC;
+    --ink-2:    #B5B6BB;
+    --muted:    #6E7480;
+    --warm:     #F4A663;
+    --warm-2:   #E58F4A;
+    --mint:     #7CD9B5;
+    --rose:     #E78287;
+    --max:      1240px;
+  }
+  *, *::before, *::after { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    background:
+      radial-gradient(ellipse 1200px 600px at 50% -200px, rgba(244,166,99,0.06), transparent 60%),
+      var(--bg);
+    color: var(--ink);
+    font: 14.5px/1.6 Inter, ui-sans-serif, -apple-system, "Sukhumvit Set", "Noto Sans Thai", sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  ::selection { background: var(--warm); color: var(--bg); }
+
+  .wrap { width: min(var(--max), calc(100% - 48px)); margin: 0 auto; }
+
+  /* ---------- Type ---------- */
+  h1, h2, h3, h4 {
+    margin: 0; font-weight: 500; letter-spacing: -0.018em; line-height: 1.1;
+  }
+  .display { font-size: clamp(40px, 5.6vw, 78px); font-weight: 600; letter-spacing: -0.028em; line-height: 1.04; }
+  .display em { font-style: normal; color: var(--warm); }
+  .h2 { font-size: clamp(28px, 3.4vw, 44px); font-weight: 500; letter-spacing: -0.018em; }
+  .lead { font-size: 16px; line-height: 1.65; color: var(--ink-2); max-width: 56ch; }
+  .mono {
+    font-family: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
+    font-feature-settings: "ss01", "calt";
+  }
+  .label {
+    font-family: "JetBrains Mono", ui-monospace, monospace;
+    font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase;
+    color: var(--muted); font-weight: 500;
+  }
+
+  /* ---------- Nav ---------- */
+  .nav {
+    position: sticky; top: 0; z-index: 10;
+    background: rgba(14,17,22,0.85); backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border-bottom: 1px solid var(--line);
+  }
+  .nav-inner {
+    display: grid; grid-template-columns: auto 1fr auto; gap: 40px;
+    align-items: center; padding: 14px 0;
+  }
+  .brand {
+    display: inline-flex; align-items: center; gap: 10px;
+    text-decoration: none; color: var(--ink); font-size: 15px; font-weight: 600;
+    letter-spacing: -0.005em;
+  }
+  .brand-mark {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 26px; height: 26px; border-radius: 7px;
+    background: linear-gradient(140deg, var(--warm) 0%, var(--warm-2) 100%);
+    color: #1A1410; font-family: "JetBrains Mono", monospace; font-weight: 700; font-size: 11px;
+    letter-spacing: -0.02em;
+  }
+  .nav-links { display: flex; gap: 28px; font-size: 13px; }
+  .nav-links a {
+    color: var(--ink-2); text-decoration: none; padding: 6px 0;
+    transition: color .2s; position: relative;
+  }
+  .nav-links a:hover { color: var(--ink); }
+  .nav-links a::after {
+    content: ""; position: absolute; left: 0; right: 0; bottom: -1px; height: 1px;
+    background: var(--warm); transform: scaleX(0); transform-origin: left;
+    transition: transform .25s;
+  }
+  .nav-links a:hover::after { transform: scaleX(1); }
+  .nav-end { display: flex; gap: 14px; align-items: center; }
+  .btn {
+    text-decoration: none; transition: all .2s ease;
+    display: inline-flex; align-items: center; gap: 8px;
+    font-size: 13px; letter-spacing: 0; line-height: 1;
+  }
+  .btn-ghost {
+    color: var(--ink-2); padding: 9px 14px;
+  }
+  .btn-ghost:hover { color: var(--ink); }
+  .btn-warm {
+    background: var(--warm); color: #1A1410; padding: 9px 16px; border-radius: 7px;
+    font-weight: 500;
+  }
+  .btn-warm:hover { background: var(--warm-2); transform: translateY(-1px); }
+
+  /* ---------- Hero ---------- */
+  .hero { padding: 96px 0 80px; position: relative; }
+  .hero-grid {
+    display: grid; grid-template-columns: 1fr 1.15fr; gap: 56px;
+    align-items: center;
+  }
+  @media (max-width: 1000px) { .hero-grid { grid-template-columns: 1fr; gap: 48px; } }
+  .hero-text .label { display: inline-flex; align-items: center; gap: 10px; padding: 6px 12px;
+    border: 1px solid var(--line-2); border-radius: 999px; color: var(--ink-2); margin-bottom: 32px;
+    background: var(--bg-2);
+  }
+  .hero-text .label::before {
+    content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--mint);
+    box-shadow: 0 0 8px var(--mint);
+    animation: pulse 2.4s infinite;
+  }
+  @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: .4; } }
+  .hero h1 { color: var(--ink); }
+  .hero .lead { margin-top: 24px; }
+  .hero-actions { margin-top: 36px; display: flex; gap: 14px; align-items: center; }
+  .btn-cta {
+    background: var(--warm); color: #1A1410; padding: 14px 22px; border-radius: 9px;
+    font-weight: 500; font-size: 14px;
+  }
+  .btn-cta:hover { background: var(--warm-2); transform: translateY(-1px); box-shadow: 0 8px 24px rgba(244,166,99,0.28); }
+  .btn-link-warm {
+    color: var(--ink); padding: 14px 16px;
+  }
+  .btn-link-warm::after {
+    content: " →"; transition: transform .2s; display: inline-block;
+  }
+  .btn-link-warm:hover { color: var(--warm); }
+  .btn-link-warm:hover::after { transform: translateX(4px); }
+
+  .promises {
+    margin-top: 48px;
+    display: grid; grid-template-columns: 1fr 1fr; gap: 14px 24px;
+    padding: 20px 24px; border: 1px solid var(--line); border-radius: 12px;
+    background: linear-gradient(180deg, var(--bg-2) 0%, var(--bg) 100%);
+  }
+  .promise { display: flex; align-items: center; gap: 10px; font-size: 13px; color: var(--ink-2); }
+  .promise i {
+    width: 6px; height: 6px; border-radius: 50%; background: var(--warm);
+    box-shadow: 0 0 6px var(--warm);
+  }
+
+  /* ---------- Hero terminal ---------- */
+  .term {
+    background: var(--bg-2);
+    border: 1px solid var(--line-2);
+    border-radius: 14px;
+    overflow: hidden;
+    box-shadow:
+      0 30px 80px rgba(0,0,0,0.45),
+      0 0 0 1px rgba(244,166,99,0.04);
+    position: relative;
+  }
+  .term::before {
+    content: ""; position: absolute; left: 0; right: 0; top: 0; height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(244,166,99,0.5), transparent);
+  }
+  .term-bar {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 11px 14px; background: var(--bg-3);
+    border-bottom: 1px solid var(--line);
+  }
+  .term-bar-left { display: flex; align-items: center; gap: 14px; }
+  .dots { display: flex; gap: 6px; }
+  .dots i { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+  .dots i:nth-child(1) { background: #FF5F57; }
+  .dots i:nth-child(2) { background: #FEBC2E; }
+  .dots i:nth-child(3) { background: #28C840; }
+  .term-bar small {
+    font-family: "JetBrains Mono", monospace; font-size: 11px;
+    color: var(--muted); letter-spacing: 0.05em;
+  }
+  .term-bar small b { color: var(--ink-2); font-weight: 500; }
+  .status {
+    display: inline-flex; align-items: center; gap: 8px;
+    font-family: "JetBrains Mono", monospace; font-size: 10.5px;
+    color: var(--mint); letter-spacing: 0.12em; text-transform: uppercase;
+    padding: 4px 10px; border-radius: 999px; background: rgba(124,217,181,0.08);
+    border: 1px solid rgba(124,217,181,0.24);
+  }
+  .status::before {
+    content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--mint);
+    box-shadow: 0 0 6px var(--mint);
+  }
+
+  .term-grid {
+    display: grid; grid-template-columns: 110px 1fr 230px;
+    background:
+      repeating-linear-gradient(0deg, transparent 0, transparent 24px, rgba(255,255,255,0.012) 24px, rgba(255,255,255,0.012) 25px);
+    min-height: 420px;
+  }
+  @media (max-width: 760px) { .term-grid { grid-template-columns: 1fr; min-height: auto; } }
+  .term-col + .term-col { border-left: 1px solid var(--line); }
+
+  .channel-rail { padding: 14px 12px; display: flex; flex-direction: column; gap: 6px; }
+  .channel-rail .label { padding: 0 6px 8px; }
+  .ch {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 9px 11px; border-radius: 7px;
+    font-size: 12.5px; color: var(--ink-2); cursor: pointer;
+    transition: background .2s, color .2s;
+  }
+  .ch:hover { background: var(--bg-3); color: var(--ink); }
+  .ch.active {
+    background: rgba(244,166,99,0.10); color: var(--ink);
+    box-shadow: inset 0 0 0 1px rgba(244,166,99,0.30);
+  }
+  .ch small {
+    font-family: "JetBrains Mono", monospace; font-size: 10.5px;
+    color: var(--muted); font-variant-numeric: tabular-nums;
+  }
+  .ch.active small { color: var(--warm); }
+
+  .threads-col { padding: 14px; display: flex; flex-direction: column; gap: 8px; }
+  .threads-col .label { padding: 0 4px 6px; display: flex; justify-content: space-between; }
+  .threads-col .label i { color: var(--mint); }
+  .row {
+    padding: 11px 13px; border-radius: 8px; background: var(--bg);
+    border: 1px solid var(--line);
+    transition: border-color .2s, transform .2s;
+  }
+  .row:hover { border-color: var(--line-2); transform: translateX(2px); }
+  .row.hot { border-left: 2px solid var(--warm); }
+  .row-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; }
+  .row-head b { font-size: 12.5px; font-weight: 500; color: var(--ink); }
+  .row p { margin: 0; font-size: 12px; color: var(--ink-2); line-height: 1.5; }
+  .tag {
+    font-family: "JetBrains Mono", monospace; font-size: 10px; letter-spacing: 0.1em;
+    text-transform: uppercase; padding: 2px 7px; border-radius: 999px;
+    border: 1px solid var(--line-2); color: var(--muted); background: var(--bg-2);
+  }
+  .tag.auto    { color: var(--mint); border-color: rgba(124,217,181,0.3); background: rgba(124,217,181,0.08); }
+  .tag.review  { color: var(--warm); border-color: rgba(244,166,99,0.3); background: rgba(244,166,99,0.08); }
+  .tag.escalate{ color: var(--rose); border-color: rgba(231,130,135,0.3); background: rgba(231,130,135,0.08); }
+
+  .intel-col { padding: 14px 14px 14px; display: flex; flex-direction: column; gap: 12px; }
+  .intel-col .label { padding-bottom: 4px; }
+  .intel-card {
+    padding: 12px 14px; border-radius: 9px; background: var(--bg);
+    border: 1px solid var(--line);
+  }
+  .intel-card h4 {
+    font-size: 11px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase;
+    color: var(--ink); margin-bottom: 6px;
+  }
+  .intel-card p { margin: 0; font-size: 12px; color: var(--ink-2); line-height: 1.5; }
+  .intel-card ul { margin: 6px 0 0; padding: 0; list-style: none; }
+  .intel-card li {
+    font-size: 12px; color: var(--ink-2); padding: 3px 0 3px 14px; position: relative;
+  }
+  .intel-card li::before {
+    content: ""; position: absolute; left: 0; top: 12px; width: 7px; height: 1px;
+    background: var(--warm);
+  }
+  .conf {
+    margin-top: 10px; height: 4px; background: var(--bg-3); border-radius: 999px;
+    position: relative; overflow: hidden;
+  }
+  .conf i {
+    position: absolute; left: 0; top: 0; bottom: 0; width: 91%;
+    background: linear-gradient(90deg, var(--warm), var(--mint));
+    border-radius: 999px;
+  }
+  .conf small {
+    position: absolute; right: 6px; top: -16px; font-family: "JetBrains Mono", monospace;
+    font-size: 10px; color: var(--mint); letter-spacing: 0.05em;
+  }
+
+  /* ---------- Section: Agents ---------- */
+  .section { padding: 120px 0; border-top: 1px solid var(--line); }
+  .section-head {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 56px; align-items: end;
+    margin-bottom: 60px;
+  }
+  @media (max-width: 900px) { .section-head { grid-template-columns: 1fr; gap: 24px; } }
+  .section-head .label { color: var(--warm); display: inline-block; margin-bottom: 18px; }
+  .section-head h2 { color: var(--ink); }
+
+  .panel {
+    border: 1px solid var(--line-2); border-radius: 14px;
+    background: var(--bg-2);
+    overflow: hidden;
+  }
+  .panel-tabs {
+    display: grid; grid-template-columns: 1fr 1fr 1fr;
+    border-bottom: 1px solid var(--line);
+    background: var(--bg-3);
+  }
+  .agent-tab {
+    background: transparent; border: 0; cursor: pointer;
+    text-align: left; padding: 22px 24px;
+    font: inherit; color: var(--ink-2);
+    border-right: 1px solid var(--line);
+    transition: background .2s, color .2s;
+    position: relative;
+  }
+  .agent-tab:last-child { border-right: 0; }
+  .agent-tab:hover { background: rgba(244,166,99,0.04); color: var(--ink); }
+  .agent-tab .num {
+    font-family: "JetBrains Mono", monospace; font-size: 10.5px; letter-spacing: 0.16em;
+    color: var(--muted); display: block; margin-bottom: 8px;
+  }
+  .agent-tab strong {
+    display: block; font-size: 16px; font-weight: 600; color: var(--ink); margin-bottom: 4px;
+    letter-spacing: -0.005em;
+  }
+  .agent-tab span { display: block; font-size: 13px; color: var(--ink-2); line-height: 1.55; }
+  .agent-tab[aria-selected="true"] {
+    background: var(--bg-2); color: var(--ink);
+  }
+  .agent-tab[aria-selected="true"] .num { color: var(--warm); }
+  .agent-tab[aria-selected="true"]::after {
+    content: ""; position: absolute; left: 24px; right: 24px; bottom: -1px; height: 2px;
+    background: var(--warm); border-radius: 2px;
+  }
+  @media (max-width: 760px) {
+    .panel-tabs { grid-template-columns: 1fr; }
+    .agent-tab { border-right: 0; border-bottom: 1px solid var(--line); }
+    .agent-tab[aria-selected="true"]::after { display: none; }
+    .agent-tab[aria-selected="true"] { box-shadow: inset 3px 0 0 var(--warm); }
+  }
+
+  .panel-body { padding: 36px 36px 40px; }
+  .panel-top {
+    display: flex; justify-content: space-between; align-items: baseline;
+    padding-bottom: 22px; margin-bottom: 28px; border-bottom: 1px solid var(--line);
+  }
+  .panel-top strong { font-size: 20px; font-weight: 600; }
+  .panel-top p { margin: 4px 0 0; font-size: 13px; color: var(--muted); }
+  .state-pill {
+    font-family: "JetBrains Mono", monospace; font-size: 10.5px; letter-spacing: 0.18em;
+    text-transform: uppercase; color: var(--warm); padding: 5px 11px;
+    border: 1px solid rgba(244,166,99,0.3); border-radius: 999px;
+    background: rgba(244,166,99,0.08);
+  }
+
+  .panel-body-inner {
+    display: grid; grid-template-columns: 1.4fr 1fr; gap: 40px;
+  }
+  @media (max-width: 800px) { .panel-body-inner { grid-template-columns: 1fr; } }
+  .panel-body-inner h3 {
+    font-size: 24px; font-weight: 600; letter-spacing: -0.012em; line-height: 1.2;
+  }
+  .panel-body-inner > div > p {
+    margin: 16px 0 0; font-size: 15px; line-height: 1.7; color: var(--ink-2);
+  }
+  .caps {
+    margin-top: 32px;
+    display: grid; grid-template-columns: 1fr 1fr; gap: 14px;
+  }
+  .cap {
+    padding: 16px 18px; border-radius: 10px; background: var(--bg);
+    border: 1px solid var(--line);
+    transition: border-color .2s;
+  }
+  .cap:hover { border-color: var(--line-2); }
+  .cap strong {
+    display: block; font-size: 13px; font-weight: 600; color: var(--ink); margin-bottom: 4px;
+  }
+  .cap span { font-size: 12.5px; line-height: 1.55; color: var(--ink-2); }
+
+  .mini { display: flex; flex-direction: column; gap: 14px; }
+  .mini-row {
+    padding: 14px 16px; border-radius: 10px; background: var(--bg-3);
+    border-left: 2px solid var(--warm);
+  }
+  .mini-row strong {
+    display: block; font-family: "JetBrains Mono", monospace;
+    font-size: 10.5px; letter-spacing: 0.16em; text-transform: uppercase;
+    color: var(--warm); margin-bottom: 6px;
+  }
+  .mini-row span { font-size: 13px; color: var(--ink-2); line-height: 1.6; }
+
+  /* ---------- Footer ---------- */
+  .foot { padding: 40px 0 56px; border-top: 1px solid var(--line); margin-top: 80px; }
+  .foot-inner {
+    display: flex; justify-content: space-between; align-items: center;
+    font-size: 12px; color: var(--muted);
+  }
+  .foot-inner b { color: var(--ink-2); font-weight: 500; }
+</style>
+</head>
+<body>
+
+<header class="nav">
+  <div class="wrap">
+    <div class="nav-inner">
+      <a class="brand" href="#top">
+        <span class="brand-mark">360</span>
+        CRMOS360
+      </a>
+      <nav class="nav-links">
+        <a href="#ai-os">AI OS</a>
+        <a href="#agents">Agents</a>
+        <a href="#autopilot">Autopilot</a>
+        <a href="#backoffice">Backoffice</a>
+        <a href="#features">Features</a>
+      </nav>
+      <div class="nav-end">
+        <a class="btn btn-ghost" href="#login">เข้าสู่ระบบ</a>
+        <a class="btn btn-warm" href="#contact">ขอดูเดโม</a>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- Hero -->
+<section class="hero" id="top">
+  <div class="wrap">
+    <div class="hero-grid">
+      <div class="hero-text">
+        <span class="label">AI OS · Customer Operations</span>
+        <h1 class="display">
+          ระบบเดียวที่<br/>
+          <em>คิด ตอบ ทำ</em><br/>
+          และเรียนรู้
+        </h1>
+        <p class="lead">
+          รวมแชทลูกค้าจาก LINE OA, Facebook, Instagram, TikTok Shop, Shopee, Lazada และช่องทางอื่นไว้ในระบบเดียว
+          พร้อม AI Agents ที่ตอบเองได้เมื่อมั่นใจ รออนุมัติเมื่อเคสสำคัญ ทำงานหลังบ้าน
+          และเรียนรู้จากธุรกิจของคุณอย่างต่อเนื่อง
+        </p>
+        <div class="hero-actions">
+          <a class="btn btn-cta" href="#contact">ขอดูเดโม CRMOS360</a>
+          <a class="btn btn-link-warm" href="#ai-os">ดู USP หลัก</a>
+        </div>
+        <div class="promises">
+          <span class="promise"><i></i>Auto-Reply แบบควบคุมได้</span>
+          <span class="promise"><i></i>AI-managed Backoffice</span>
+          <span class="promise"><i></i>Customer Memory</span>
+          <span class="promise"><i></i>Marketplace Workflows</span>
+        </div>
+      </div>
+
+      <div class="term" aria-hidden="true">
+        <div class="term-bar">
+          <div class="term-bar-left">
+            <div class="dots"><i></i><i></i><i></i></div>
+            <small><b>crmos360.app</b> / inbox</small>
+          </div>
+          <span class="status">AI OS Online</span>
+        </div>
+        <div class="term-grid">
+          <div class="term-col channel-rail">
+            <div class="label">Channels</div>
+            <div class="ch active">LINE <small>8</small></div>
+            <div class="ch">TikTok <small>5</small></div>
+            <div class="ch">Shopee <small>4</small></div>
+            <div class="ch">Lazada <small>3</small></div>
+            <div class="ch">Meta <small>6</small></div>
+            <div class="ch">Email <small>2</small></div>
+          </div>
+          <div class="term-col threads-col">
+            <div class="label"><span>Live · Inbox</span><i>● 4 active</i></div>
+            <div class="row hot">
+              <div class="row-head"><b>คุณพิมพ์พร · LINE OA</b><span class="tag auto">Auto</span></div>
+              <p>ถามเลข tracking ของออเดอร์ล่าสุด ระบบเช็กข้อมูลและตอบได้ทันที</p>
+            </div>
+            <div class="row">
+              <div class="row-head"><b>TikTok Shop Buyer</b><span class="tag review">Review</span></div>
+              <p>ลูกค้าขอเปลี่ยนสินค้า AI ร่างคำตอบพร้อมขั้นตอนให้ทีมอนุมัติ</p>
+            </div>
+            <div class="row">
+              <div class="row-head"><b>Shopee Complaint</b><span class="tag escalate">Escalate</span></div>
+              <p>ลูกค้าไม่พอใจเรื่องจัดส่งล่าช้า ส่งต่อหัวหน้าทีมพร้อมสรุปเคส</p>
+            </div>
+            <div class="row">
+              <div class="row-head"><b>Instagram Lead</b><span class="tag">Growth</span></div>
+              <p>AI แนะนำสินค้าที่เกี่ยวข้องและคูปองสำหรับ follow-up</p>
+            </div>
+          </div>
+          <div class="term-col intel-col">
+            <div class="label">Advisor</div>
+            <div class="intel-card">
+              <h4>Auto-Reply rule</h4>
+              <p>เปิด Auto-Reply สำหรับ tracking request ที่มั่นใจ &gt;85%</p>
+              <div class="conf"><i></i><small>91%</small></div>
+            </div>
+            <div class="intel-card">
+              <h4>Customer Memory</h4>
+              <ul>
+                <li>ชอบโปรส่งฟรี</li>
+                <li>เคย complaint เรื่องส่งช้า</li>
+                <li>tone สุภาพและกระชับ</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Agents Section -->
+<section class="section" id="agents">
+  <div class="wrap">
+    <div class="section-head">
+      <div>
+        <span class="label">AI Agent Team</span>
+        <h2 class="h2">
+          ขับเคลื่อนด้วย <em style="color:var(--warm); font-style: normal;">3 AI Agents</em><br/>
+          ที่เข้าใจหน้าบ้านและหลังบ้าน
+        </h2>
+      </div>
+      <p class="lead">
+        ไม่ต้องสร้าง agent เยอะจนซับซ้อน CRMOS360 วาง agent เป็น 3 บทบาทหลักที่ธุรกิจเข้าใจง่าย:
+        ดูแลลูกค้า ทำงานหลังบ้าน และช่วยสร้างรายได้จากบทสนทนา
+      </p>
+    </div>
+
+    <div class="panel">
+      <div class="panel-tabs" role="tablist" aria-label="AI agents">
+        <button class="agent-tab" role="tab" aria-selected="true" data-agent="service">
+          <span class="num">01 / Service</span>
+          <strong>Customer Service Agent</strong>
+          <span>ตัวหลักสำหรับตอบลูกค้า จำบริบท และจัดการเคสประจำวัน</span>
+        </button>
+        <button class="agent-tab" role="tab" aria-selected="false" data-agent="ops">
+          <span class="num">02 / Operations</span>
+          <strong>Operations Agent</strong>
+          <span>เชื่อมแชทกับออเดอร์ ticket API workflow และทีมหลังบ้าน</span>
+        </button>
+        <button class="agent-tab" role="tab" aria-selected="false" data-agent="growth">
+          <span class="num">03 / Growth</span>
+          <strong>Growth Agent</strong>
+          <span>แนะนำสินค้า โปรโมชั่น follow-up และ insight เพื่อเพิ่มรายได้</span>
+        </button>
+      </div>
+
+      <div class="panel-body">
+        <div class="panel-top">
+          <div>
+            <strong id="agent-title">Customer Service Agent</strong>
+            <p id="agent-subtitle">AI ตัวหลักสำหรับดูแลลูกค้าทุกช่องทาง</p>
+          </div>
+          <span class="state-pill" id="agent-state">Main Character</span>
+        </div>
+        <div class="panel-body-inner">
+          <div>
+            <h3 id="agent-heading">ตอบลูกค้าเร็วขึ้น โดยยังรักษาคุณภาพและบริบทของแบรนด์</h3>
+            <p id="agent-description">
+              Customer Service Agent ช่วยตอบคำถาม แนะนำคำตอบ สรุปบทสนทนา วิเคราะห์ intent
+              ตรวจจับ sentiment แปลภาษา จดจำบริบทลูกค้า และแจ้งเตือนเมื่อควรส่งต่อให้มนุษย์
+            </p>
+            <div class="caps" id="agent-capabilities">
+              <div class="cap"><strong>Auto Reply</strong><span>ตอบคำถามที่ปลอดภัยและเกิดซ้ำได้ทันที</span></div>
+              <div class="cap"><strong>Approval Draft</strong><span>ร่างคำตอบให้ทีมตรวจในเคสสำคัญ</span></div>
+              <div class="cap"><strong>Customer Memory</strong><span>จำประวัติ ความสนใจ และปัญหาเดิม</span></div>
+              <div class="cap"><strong>Sentiment & Intent</strong><span>รู้ว่าลูกค้ากำลังถามอะไรและรู้สึกอย่างไร</span></div>
+            </div>
+          </div>
+          <aside class="mini" id="agent-mini">
+            <div class="mini-row"><strong>เหมาะกับ</strong><span>LINE OA, TikTok Shop, Shopee, Lazada, Facebook, Instagram และ Email</span></div>
+            <div class="mini-row"><strong>ตัวอย่างเคส</strong><span>ถามสินค้า โปรโมชั่น ค่าจัดส่ง วิธีชำระเงิน และ complaint เบื้องต้น</span></div>
+            <div class="mini-row"><strong>ผลลัพธ์</strong><span>ลดเวลาตอบซ้ำ ทำให้ agent ใหม่ตอบได้เหมือนคนมีประสบการณ์</span></div>
+          </aside>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer class="foot">
+  <div class="wrap">
+    <div class="foot-inner">
+      <div><b>CRMOS360</b> · An AI Operating System for Customer Operations</div>
+      <div>Direction 3 · Operations Cockpit — Linear × Granola</div>
+    </div>
+  </div>
+</footer>
+
+<script>
+  const agents = {
+    service: {
+      title: "Customer Service Agent",
+      subtitle: "AI ตัวหลักสำหรับดูแลลูกค้าทุกช่องทาง",
+      state: "Main Character",
+      heading: "ตอบลูกค้าเร็วขึ้น โดยยังรักษาคุณภาพและบริบทของแบรนด์",
+      description: "Customer Service Agent ช่วยตอบคำถาม แนะนำคำตอบ สรุปบทสนทนา วิเคราะห์ intent ตรวจจับ sentiment แปลภาษา จดจำบริบทลูกค้า และแจ้งเตือนเมื่อควรส่งต่อให้มนุษย์",
+      capabilities: [
+        ["Auto Reply", "ตอบคำถามที่ปลอดภัยและเกิดซ้ำได้ทันที"],
+        ["Approval Draft", "ร่างคำตอบให้ทีมตรวจในเคสสำคัญ"],
+        ["Customer Memory", "จำประวัติ ความสนใจ และปัญหาเดิม"],
+        ["Sentiment & Intent", "รู้ว่าลูกค้ากำลังถามอะไรและรู้สึกอย่างไร"],
+      ],
+      mini: [
+        ["เหมาะกับ", "LINE OA, TikTok Shop, Shopee, Lazada, Facebook, Instagram และ Email"],
+        ["ตัวอย่างเคส", "ถามสินค้า โปรโมชั่น ค่าจัดส่ง วิธีชำระเงิน และ complaint เบื้องต้น"],
+        ["ผลลัพธ์", "ลดเวลาตอบซ้ำ ทำให้ agent ใหม่ตอบได้เหมือนคนมีประสบการณ์"],
+      ],
+    },
+    ops: {
+      title: "Operations Agent",
+      subtitle: "AI ที่เปลี่ยนข้อความลูกค้าให้กลายเป็นงานหลังบ้าน",
+      state: "Action Engine",
+      heading: "จากคำถามลูกค้าไปสู่ออเดอร์ ticket API และ workflow",
+      description: "Operations Agent ช่วยตรวจสอบข้อมูล สร้าง ticket assign งาน เรียก API ส่ง webhook แจ้งทีมภายใน หรือ trigger workflow เมื่อลูกค้าถามเรื่องออเดอร์ การจัดส่ง refund return คูปอง หรือปัญหาหลังการขาย",
+      capabilities: [
+        ["Order Lookup", "ตรวจสอบสถานะออเดอร์และเลข tracking"],
+        ["Workflow Trigger", "สร้าง ticket, assign งาน และแจ้งทีม"],
+        ["API & Webhook", "เชื่อมต่อระบบหลังบ้านและ marketplace"],
+        ["Return & Refund", "จัดการขั้นตอนคืนสินค้าและ complaint"],
+      ],
+      mini: [
+        ["เหมาะกับ", "ทีม support, operation, warehouse และผู้จัดการร้านค้า"],
+        ["ตัวอย่างเคส", "เช็กพัสดุ ขอคืนสินค้า ส่งคูปอง เปลี่ยนที่อยู่ หรือแจ้งปัญหาจัดส่ง"],
+        ["ผลลัพธ์", "AI ไม่ได้แค่ตอบ แต่ช่วยทำงานต่อจากบทสนทนาได้จริง"],
+      ],
+    },
+    growth: {
+      title: "Growth Agent",
+      subtitle: "AI ที่เปลี่ยนบทสนทนาให้เป็นโอกาสทางรายได้",
+      state: "Revenue Intelligence",
+      heading: "หาโอกาสขายจากคำถาม ความสนใจ และพฤติกรรมลูกค้า",
+      description: "Growth Agent วิเคราะห์ความสนใจ คำถามซ้ำ พฤติกรรมลูกค้า และข้อมูลจาก marketplace เพื่อแนะนำสินค้า โปรโมชั่น upsell cross-sell follow-up และ content ที่ควรปรับปรุง",
+      capabilities: [
+        ["Product Recommendation", "แนะนำสินค้าที่เหมาะกับบริบทลูกค้า"],
+        ["Promotion Suggestion", "เสนอคูปองหรือโปรโมชันที่มีโอกาสปิดการขาย"],
+        ["Follow-up Signal", "ตรวจจับลูกค้าที่สนใจแต่ยังไม่ซื้อ"],
+        ["Content Insight", "แนะนำ FAQ และ product content ที่ควรเพิ่ม"],
+      ],
+      mini: [
+        ["เหมาะกับ", "ecommerce, social commerce, marketplace seller และ brand team"],
+        ["ตัวอย่างเคส", "ลูกค้าถามสินค้าซ้ำ เปรียบเทียบรุ่น สนใจแต่ยังไม่จ่าย หรือถามโปรโมชัน"],
+        ["ผลลัพธ์", "ทำให้แชทลูกค้าเป็นแหล่ง insight สำหรับ sales และ marketing"],
+      ],
+    },
+  };
+  const tabs = document.querySelectorAll(".agent-tab");
+  const $ = (id) => document.getElementById(id);
+  function render(key) {
+    const a = agents[key];
+    $("agent-title").textContent = a.title;
+    $("agent-subtitle").textContent = a.subtitle;
+    $("agent-state").textContent = a.state;
+    $("agent-heading").textContent = a.heading;
+    $("agent-description").textContent = a.description;
+    $("agent-capabilities").innerHTML = a.capabilities.map(([n, c]) => `<div class="cap"><strong>${n}</strong><span>${c}</span></div>`).join("");
+    $("agent-mini").innerHTML = a.mini.map(([n, c]) => `<div class="mini-row"><strong>${n}</strong><span>${c}</span></div>`).join("");
+  }
+  tabs.forEach((t) => t.addEventListener("click", () => {
+    tabs.forEach((x) => x.setAttribute("aria-selected", "false"));
+    t.setAttribute("aria-selected", "true");
+    render(t.dataset.agent);
+  }));
+</script>
+</body>
+</html>

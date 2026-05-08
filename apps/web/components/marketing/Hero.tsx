@@ -48,7 +48,7 @@ export function Hero() {
               href="/signup"
               className="rounded-lg bg-warm px-5 py-3.5 text-[14px] font-medium text-paper shadow-cta/0 transition-all duration-200 hover:-translate-y-px hover:bg-warm-2 hover:shadow-cta"
             >
-              ขอดูเดโม CRMOS360
+              ขอดูเดโม FlowAIOS
             </Link>
             <Link
               href="#ai-os"
@@ -88,7 +88,7 @@ export function Hero() {
                 <span className="h-2.5 w-2.5 rounded-full bg-[#28C840]" />
               </div>
               <span className="font-mono text-[11px] tracking-wide text-mute">
-                <b className="font-medium text-ink-2">crmos360.app</b> / inbox
+                <b className="font-medium text-ink-2">flowaios.app</b> / inbox
               </span>
             </div>
             <span className="inline-flex items-center gap-2 rounded-full border border-mint/22 bg-mint-soft px-2.5 py-1 font-mono text-[10.5px] uppercase tracking-[0.12em] text-mint">

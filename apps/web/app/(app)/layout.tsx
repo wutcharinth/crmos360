@@ -1,37 +1,76 @@
 import Link from 'next/link';
 import { requireMembership } from '@/lib/auth/current-user';
 import { Button } from '@/components/ui/button';
+import { UserMenu } from '@/components/app/user-menu';
+
+export const dynamic = 'force-dynamic';
+
+const mainLinks = [
+  { href: '/dashboard', label: 'Dashboard' },
+  { href: '/inbox', label: 'Inbox' },
+  { href: '/customers', label: 'Customers' },
+];
+
+const adminLinks = [
+  { href: '/admin', label: 'Overview' },
+  { href: '/admin/team', label: 'Team' },
+  { href: '/admin/integrations', label: 'Integrations' },
+  { href: '/admin/audit', label: 'Audit' },
+  { href: '/admin/settings', label: 'Settings' },
+];
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const { orgName, role, user } = await requireMembership();
+  const isAdmin = role === 'owner' || role === 'admin';
 
   return (
-    <div className="flex min-h-screen flex-col">
-      <header className="flex items-center justify-between border-b px-6 py-3">
-        <div className="flex items-center gap-4">
-          <Link href="/inbox" className="font-semibold">
-            CRMOS360
-          </Link>
-          <span className="text-sm text-muted-foreground">/ {orgName}</span>
-          <nav className="ml-4 flex items-center gap-3 text-sm">
-            <Link href="/inbox" className="text-muted-foreground hover:text-foreground">
-              Inbox
+    <div className="flex min-h-screen flex-col bg-background">
+      <header className="sticky top-0 z-20 border-b bg-background/95 backdrop-blur">
+        <div className="flex items-center justify-between px-6 py-3">
+          <div className="flex items-center gap-6">
+            <Link
+              href="/dashboard"
+              className="flex items-center gap-2.5 text-[15px] font-semibold tracking-tight"
+            >
+              <span className="inline-flex h-6 w-6 items-center justify-center rounded-md bg-gradient-to-br from-warm to-warm-2 font-mono text-[11px] font-bold text-paper">
+                F
+              </span>
+              FlowAIOS
             </Link>
-            {(role === 'owner' || role === 'admin') && (
-              <Link href="/admin/team" className="text-muted-foreground hover:text-foreground">
-                Team
-              </Link>
-            )}
-          </nav>
-        </div>
-        <div className="flex items-center gap-3">
-          <span className="text-sm text-muted-foreground">{user.email}</span>
-          <form action="/auth/sign-out" method="post">
-            <Button type="submit" variant="outline" size="sm">
-              Sign out
+            <span className="text-sm text-muted-foreground">{orgName}</span>
+          </div>
+          <div className="flex items-center gap-3">
+            <Button asChild variant="ghost" size="sm">
+              <Link href="/settings/profile">Settings</Link>
             </Button>
-          </form>
+            <UserMenu email={user.email ?? ''} role={role} />
+          </div>
         </div>
+        <nav className="flex items-center gap-1 px-6 pb-1.5 text-sm">
+          {mainLinks.map((l) => (
+            <Link
+              key={l.href}
+              href={l.href}
+              className="rounded-md px-3 py-1.5 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+            >
+              {l.label}
+            </Link>
+          ))}
+          {isAdmin && (
+            <>
+              <span className="mx-2 h-4 w-px bg-border" />
+              {adminLinks.map((l) => (
+                <Link
+                  key={l.href}
+                  href={l.href}
+                  className="rounded-md px-3 py-1.5 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+                >
+                  {l.label}
+                </Link>
+              ))}
+            </>
+          )}
+        </nav>
       </header>
       <div className="flex-1">{children}</div>
     </div>
