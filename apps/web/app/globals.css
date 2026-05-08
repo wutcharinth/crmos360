@@ -2,59 +2,160 @@
 @tailwind components;
 @tailwind utilities;
 
+/*
+ * Sunlit Cockpit design tokens
+ * - shadcn variables (--background, --foreground, --primary, etc.) are
+ *   mapped to the new palette so existing primitives (Button, Input,
+ *   Card, Label) automatically inherit the theme.
+ * - Marketing-specific tokens (--paper-2, --warm, --mint, --hairline)
+ *   live alongside for landing-page utilities.
+ */
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
-    --primary: 222.2 47.4% 11.2%;
-    --primary-foreground: 210 40% 98%;
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
-    --radius: 0.5rem;
+    /* ── Sunlit Cockpit palette (HSL space-separated for hsl(var(--x))) ── */
+    --paper:       60 23% 97%;     /* #FAFAF7 */
+    --paper-2:     51 21% 94%;     /* #F2F1EB */
+    --paper-3:     47 16% 89%;     /* #E8E6DF */
+    --ink:         200 13% 9%;     /* #14181A */
+    --ink-2:       203 5% 31%;     /* #4A4F52 */
+    --mute:        90 3% 53%;      /* #888B85 */
+    --hairline:    48 13% 84%;     /* #DCDAD2 */
+    --hairline-2:  47 8% 64%;      /* #A9A69B */
+    --warm:        24 63% 44%;     /* #B8632A */
+    --warm-2:      25 62% 53%;     /* #D27A3D */
+    --warm-soft:   32 50% 90%;     /* #F2E6D8 */
+    --mint:        160 52% 36%;    /* #2C8A6B */
+    --mint-soft:   148 33% 91%;    /* #E1F0E8 */
+    --rose:        357 44% 50%;    /* #B8484E */
+
+    /* ── shadcn variables, mapped to Sunlit Cockpit ── */
+    --background:           var(--paper);
+    --foreground:           var(--ink);
+    --card:                 var(--paper);
+    --card-foreground:      var(--ink);
+    --popover:              var(--paper);
+    --popover-foreground:   var(--ink);
+    --primary:              var(--warm);
+    --primary-foreground:   var(--paper);
+    --secondary:            var(--paper-2);
+    --secondary-foreground: var(--ink);
+    --muted:                var(--paper-2);
+    --muted-foreground:     var(--mute);
+    --accent:               var(--warm-soft);
+    --accent-foreground:    var(--ink);
+    --destructive:          var(--rose);
+    --destructive-foreground: var(--paper);
+    --border:               var(--hairline);
+    --input:                var(--hairline);
+    --ring:                 var(--warm);
+    --radius:               0.5rem;
   }
 
+  /*
+   * Dark mode — Calm Cockpit fallback. Not enabled in v1; we ship light-first.
+   * Kept here so toggling is a one-liner: <html class="dark"> would flip it.
+   */
   .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
-    --primary: 210 40% 98%;
-    --primary-foreground: 222.2 47.4% 11.2%;
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 212.7 26.8% 83.9%;
+    --paper:       210 22% 7%;     /* #0E1116 */
+    --paper-2:     217 21% 11%;    /* #141921 */
+    --paper-3:     217 24% 14%;    /* #1B2230 */
+    --ink:         52 14% 94%;     /* #F4F2EC */
+    --ink-2:       228 4% 71%;     /* #B5B6BB */
+    --mute:        220 7% 47%;     /* #6E7480 */
+    --hairline:    220 24% 18%;    /* #232B3A */
+    --hairline-2:  220 22% 25%;    /* #303A4D */
+    --warm:        29 87% 67%;     /* #F4A663 */
+    --warm-2:      26 76% 60%;     /* #E58F4A */
+    --warm-soft:   29 87% 67%;
+    --mint:        158 53% 67%;    /* #7CD9B5 */
+    --mint-soft:   158 53% 67%;
+    --rose:        356 67% 71%;    /* #E78287 */
+
+    --background:           var(--paper);
+    --foreground:           var(--ink);
+    --card:                 var(--paper-2);
+    --card-foreground:      var(--ink);
+    --popover:              var(--paper-2);
+    --popover-foreground:   var(--ink);
+    --primary:              var(--warm);
+    --primary-foreground:   210 22% 7%;
+    --secondary:            var(--paper-3);
+    --secondary-foreground: var(--ink);
+    --muted:                var(--paper-3);
+    --muted-foreground:     var(--ink-2);
+    --accent:               var(--paper-3);
+    --accent-foreground:    var(--ink);
+    --destructive:          var(--rose);
+    --destructive-foreground: 210 22% 7%;
+    --border:               var(--hairline);
+    --input:                var(--hairline);
+    --ring:                 var(--warm);
   }
 }
 
 @layer base {
-  * {
-    @apply border-border;
-  }
+  * { @apply border-border; }
+  html { scroll-behavior: smooth; }
   body {
     @apply bg-background text-foreground;
-    font-feature-settings: 'rlig' 1, 'calt' 1;
+    font-family: var(--font-sans), ui-sans-serif, -apple-system, system-ui, sans-serif;
+    font-feature-settings: 'ss01', 'cv11';
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  ::selection { background: hsl(var(--warm)); color: hsl(var(--paper)); }
+  /* Use Thai font as fallback when text contains Thai characters; both languages
+     get rendered with their best-suited face within the same paragraph. */
+  :lang(th), [lang="th"] {
+    font-family: var(--font-sans), var(--font-thai), ui-sans-serif, sans-serif;
+  }
+}
+
+/*
+ * Marketing utilities — small set of bespoke classes used by landing-page
+ * components for treatments that would be verbose as Tailwind utilities.
+ */
+@layer utilities {
+  .label-mono {
+    font-family: var(--font-mono), ui-monospace, monospace;
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: hsl(var(--mute));
+    font-weight: 500;
+  }
+  .display-xl {
+    font-size: clamp(40px, 5.6vw, 78px);
+    font-weight: 600;
+    letter-spacing: -0.028em;
+    line-height: 1.04;
+  }
+  .display-lg {
+    font-size: clamp(32px, 4.4vw, 56px);
+    font-weight: 600;
+    letter-spacing: -0.022em;
+    line-height: 1.06;
+  }
+  .display-md {
+    font-size: clamp(28px, 3.4vw, 44px);
+    font-weight: 500;
+    letter-spacing: -0.018em;
+    line-height: 1.1;
+  }
+  .lead {
+    font-size: 16px;
+    line-height: 1.65;
+    color: hsl(var(--ink-2));
+    max-width: 56ch;
+  }
+  /* Subtle dotted grid behind the inbox specimen */
+  .grid-bg {
+    background-image: repeating-linear-gradient(
+      0deg,
+      transparent 0,
+      transparent 24px,
+      rgba(20, 24, 26, 0.012) 24px,
+      rgba(20, 24, 26, 0.012) 25px
+    );
   }
 }
