@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useTransition, use } from 'react';
+import { useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -8,18 +8,16 @@ import { Label } from '@/components/ui/label';
 import { createClient } from '@/lib/supabase/client';
 
 interface Props {
-  searchParamsPromise: Promise<{ next?: string; error?: string }>;
+  next: string;
+  initialError: string | null;
 }
 
-export function LoginForm({ searchParamsPromise }: Props) {
-  const search = use(searchParamsPromise);
+export function LoginForm({ next, initialError }: Props) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [error, setError] = useState<string | null>(search.error ?? null);
-
-  const next = search.next ?? '/inbox';
+  const [error, setError] = useState<string | null>(initialError);
 
   function onPasswordSubmit(e: React.FormEvent) {
     e.preventDefault();
