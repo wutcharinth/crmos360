@@ -33,6 +33,13 @@ export function ThreadView({ conversationId, autoReplyEnabled, status, messages 
     endRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages.length]);
 
+  useEffect(() => {
+    const id = setInterval(() => {
+      router.refresh();
+    }, 12000);
+    return () => clearInterval(id);
+  }, [router]);
+
   async function send() {
     if (!draft.trim() || pending) return;
     setError(null);

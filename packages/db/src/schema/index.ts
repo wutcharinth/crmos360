@@ -381,6 +381,40 @@ export const auditLogs = pgTable(
   ],
 ).enableRLS();
 
+// --- knowledge_articles ---
+
+export const knowledgeArticles = pgTable(
+  'knowledge_articles',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    orgId: uuid('org_id')
+      .notNull()
+      .references(() => organizations.id, { onDelete: 'cascade' }),
+    title: text('title').notNull(),
+    body: text('body').notNull(),
+    category: text('category'),
+    embedding: vector('embedding', { dimensions: 768 }),
+    archived: boolean('archived').notNull().default(false),
+    createdBy: uuid('created_by').references(() => authUsers.id, { onDelete: 'set null' }),
+    createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+  },
+  (t) => [
+    index('knowledge_articles_org_idx').on(t.orgId, t.archived),
+    pgPolicy('knowledge_articles_select', {
+      for: 'select',
+      to: 'authenticated',
+      using: sql`public.is_org_member(${t.orgId})`,
+    }),
+    pgPolicy('knowledge_articles_admin_write', {
+      for: 'all',
+      to: 'authenticated',
+      using: sql`public.is_org_admin(${t.orgId})`,
+      withCheck: sql`public.is_org_admin(${t.orgId})`,
+    }),
+  ],
+).enableRLS();
+
 // Inferred types for app code.
 export type Organization = typeof organizations.$inferSelect;
 export type NewOrganization = typeof organizations.$inferInsert;
@@ -391,3 +425,4 @@ export type Message = typeof messages.$inferSelect;
 export type CustomerMemory = typeof customerMemory.$inferSelect;
 export type AiLog = typeof aiLogs.$inferSelect;
 export type AuditLog = typeof auditLogs.$inferSelect;
+export type KnowledgeArticle = typeof knowledgeArticles.$inferSelect;

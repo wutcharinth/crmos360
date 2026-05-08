@@ -3,6 +3,7 @@ import { generate, type LlmMessage } from '@crmos360/ai';
 import { sendPush, sendReply } from '@crmos360/line';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { extractAndStoreMemory } from './memory';
+import { retrieveKnowledge, formatKnowledgeContext } from './knowledge';
 
 const SYSTEM_PROMPT = `You are FlowAIOS, an AI customer service agent for a Thai e-commerce business.
 Reply in the same language the customer used (default: Thai).
@@ -43,13 +44,21 @@ export async function runAutoReply(args: RunAutoReplyArgs): Promise<void> {
 
   if (history.length === 0) return;
 
+  const lastInbound = [...history].reverse().find((m) => m.role === 'user')?.content ?? '';
+  const kbHits = await retrieveKnowledge(args.orgId, lastInbound);
+  const kbContext = formatKnowledgeContext(kbHits);
+
+  const messages: LlmMessage[] = [{ role: 'system', content: SYSTEM_PROMPT }];
+  if (kbContext) messages.push({ role: 'system', content: kbContext });
+  messages.push(...history);
+
   const start = Date.now();
   let replyText: string;
   let model = 'unknown';
 
   try {
     const res = await generate({
-      messages: [{ role: 'system', content: SYSTEM_PROMPT }, ...history],
+      messages,
       temperature: 0.4,
       maxTokens: 400,
     });
@@ -91,7 +100,7 @@ export async function runAutoReply(args: RunAutoReplyArgs): Promise<void> {
     conversation_id: args.conversationId,
     kind: 'reply_suggest',
     model,
-    response: { text: replyText },
+    response: { text: replyText, kb_hits: kbHits.map((h) => h.id) },
     accepted: true,
     latency_ms: Date.now() - start,
   });
