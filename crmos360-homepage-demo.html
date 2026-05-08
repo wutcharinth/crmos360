@@ -1,0 +1,2077 @@
+<!doctype html>
+<html lang="th">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>CRMOS360 | AI OS สำหรับ Customer Operations</title>
+    <meta
+      name="description"
+      content="CRMOS360 คือ AI OS สำหรับ Customer Operations และ Social Commerce รวมแชท ลูกค้า ออเดอร์ Workflow และ AI Agents ไว้ในระบบเดียว"
+    />
+    <style>
+      :root {
+        --ink: #17211c;
+        --muted: #5f6d65;
+        --soft: #f6f8f3;
+        --paper: #ffffff;
+        --line: #dce4dc;
+        --line-strong: #b9c9bd;
+        --teal: #0f8a7a;
+        --teal-dark: #0a665b;
+        --mint: #dff5e9;
+        --lime: #b8e45d;
+        --coral: #f06d4f;
+        --amber: #f7b84b;
+        --blue: #3867d6;
+        --violet: #6a5ae0;
+        --black: #0f1512;
+        --shadow: 0 20px 70px rgba(15, 21, 18, 0.12);
+        --shadow-soft: 0 12px 35px rgba(15, 21, 18, 0.08);
+        --radius: 8px;
+        --max: 1180px;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html {
+        scroll-behavior: smooth;
+      }
+
+      body {
+        margin: 0;
+        color: var(--ink);
+        background: var(--soft);
+        font-family:
+          Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+          "Noto Sans Thai", "Helvetica Neue", Arial, sans-serif;
+        letter-spacing: 0;
+      }
+
+      a {
+        color: inherit;
+        text-decoration: none;
+      }
+
+      button,
+      input,
+      textarea {
+        font: inherit;
+      }
+
+      .site-shell {
+        min-height: 100vh;
+        overflow: hidden;
+      }
+
+      .nav {
+        position: sticky;
+        top: 0;
+        z-index: 40;
+        border-bottom: 1px solid rgba(220, 228, 220, 0.92);
+        background: rgba(246, 248, 243, 0.94);
+        backdrop-filter: blur(18px);
+      }
+
+      .nav-inner {
+        width: min(var(--max), calc(100% - 40px));
+        min-height: 70px;
+        margin: 0 auto;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 20px;
+      }
+
+      .brand {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        font-weight: 850;
+        font-size: 18px;
+      }
+
+      .brand-mark {
+        width: 34px;
+        height: 34px;
+        border: 1px solid var(--ink);
+        background: var(--lime);
+        display: grid;
+        place-items: center;
+        border-radius: 8px;
+        box-shadow: 4px 4px 0 var(--ink);
+        font-size: 13px;
+        line-height: 1;
+      }
+
+      .nav-links {
+        display: flex;
+        align-items: center;
+        gap: 22px;
+        color: var(--muted);
+        font-size: 14px;
+        font-weight: 650;
+      }
+
+      .nav-links a:hover {
+        color: var(--ink);
+      }
+
+      .nav-actions {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .button {
+        min-height: 42px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        border: 1px solid var(--ink);
+        border-radius: var(--radius);
+        padding: 10px 16px;
+        font-weight: 800;
+        font-size: 14px;
+        cursor: pointer;
+        transition:
+          transform 160ms ease,
+          box-shadow 160ms ease,
+          background 160ms ease;
+      }
+
+      .button:hover {
+        transform: translateY(-1px);
+      }
+
+      .button.primary {
+        background: var(--ink);
+        color: white;
+        box-shadow: 4px 4px 0 var(--lime);
+      }
+
+      .button.secondary {
+        background: var(--paper);
+        color: var(--ink);
+      }
+
+      .button.ghost {
+        border-color: var(--line-strong);
+        background: transparent;
+        color: var(--ink);
+      }
+
+      .hero {
+        position: relative;
+        min-height: 720px;
+        height: calc(100svh - 30px);
+        max-height: 820px;
+        display: grid;
+        align-items: center;
+        overflow: hidden;
+        border-bottom: 1px solid var(--line);
+        background: #eef5ef;
+      }
+
+      .hero-scene {
+        position: absolute;
+        inset: 0;
+        padding: 0;
+        opacity: 0.96;
+      }
+
+      .hero-scene::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        z-index: 1;
+        background: rgba(238, 245, 239, 0.54);
+        pointer-events: none;
+      }
+
+      .os-board {
+        z-index: 0;
+        position: absolute;
+        top: 106px;
+        right: max(-40px, calc((100vw - 1500px) / 2 - 60px));
+        width: 820px;
+        min-height: 590px;
+        border: 1px solid var(--ink);
+        border-radius: var(--radius);
+        background: rgba(255, 255, 255, 0.96);
+        box-shadow: 12px 12px 0 rgba(23, 33, 28, 0.9);
+        overflow: hidden;
+      }
+
+      .os-topbar {
+        height: 48px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        border-bottom: 1px solid var(--line);
+        padding: 0 14px;
+        background: #fbfcf9;
+      }
+
+      .window-dots {
+        display: flex;
+        gap: 7px;
+      }
+
+      .window-dots span {
+        width: 10px;
+        height: 10px;
+        border-radius: 999px;
+        border: 1px solid var(--ink);
+        background: var(--amber);
+      }
+
+      .window-dots span:nth-child(2) {
+        background: var(--lime);
+      }
+
+      .window-dots span:nth-child(3) {
+        background: var(--coral);
+      }
+
+      .system-status {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        color: var(--teal-dark);
+        font-size: 12px;
+        font-weight: 850;
+      }
+
+      .pulse {
+        width: 9px;
+        height: 9px;
+        border-radius: 50%;
+        background: var(--teal);
+        box-shadow: 0 0 0 5px rgba(15, 138, 122, 0.12);
+      }
+
+      .os-grid {
+        display: grid;
+        grid-template-columns: 82px 260px 1fr;
+        min-height: 542px;
+      }
+
+      .channel-rail {
+        border-right: 1px solid var(--line);
+        padding: 14px 10px;
+        display: grid;
+        gap: 10px;
+        align-content: start;
+        background: #f7faf4;
+      }
+
+      .channel-tile {
+        height: 54px;
+        border: 1px solid var(--line-strong);
+        border-radius: var(--radius);
+        background: var(--paper);
+        display: grid;
+        place-items: center;
+        font-size: 11px;
+        font-weight: 900;
+        color: var(--ink);
+        position: relative;
+      }
+
+      .channel-tile.active {
+        border-color: var(--ink);
+        background: var(--mint);
+      }
+
+      .channel-tile::after {
+        content: attr(data-count);
+        position: absolute;
+        top: -7px;
+        right: -7px;
+        min-width: 20px;
+        height: 20px;
+        padding: 0 5px;
+        display: grid;
+        place-items: center;
+        border: 1px solid var(--ink);
+        border-radius: 999px;
+        background: var(--coral);
+        color: white;
+        font-size: 10px;
+      }
+
+      .conversation-list {
+        border-right: 1px solid var(--line);
+        padding: 14px;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        background: #ffffff;
+      }
+
+      .panel-title {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        margin-bottom: 4px;
+        font-size: 13px;
+        font-weight: 900;
+      }
+
+      .tiny-filter {
+        font-size: 11px;
+        color: var(--teal-dark);
+        border: 1px solid var(--line-strong);
+        border-radius: 6px;
+        padding: 5px 7px;
+        background: #f8fbf8;
+      }
+
+      .thread {
+        min-height: 82px;
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+        padding: 10px;
+        background: #fbfcfa;
+      }
+
+      .thread.hot {
+        border-color: var(--ink);
+        background: var(--mint);
+      }
+
+      .thread-top {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        font-size: 12px;
+        font-weight: 850;
+      }
+
+      .thread p {
+        margin: 7px 0 0;
+        color: var(--muted);
+        font-size: 12px;
+        line-height: 1.45;
+      }
+
+      .badge {
+        display: inline-flex;
+        align-items: center;
+        min-height: 22px;
+        border: 1px solid var(--line-strong);
+        border-radius: 6px;
+        padding: 2px 7px;
+        font-size: 11px;
+        font-weight: 850;
+        color: var(--ink);
+        background: var(--paper);
+        white-space: nowrap;
+      }
+
+      .badge.auto {
+        background: var(--lime);
+        border-color: var(--ink);
+      }
+
+      .badge.approval {
+        background: #ffe8bf;
+        border-color: #ca8c24;
+      }
+
+      .badge.escalate {
+        background: #ffe7e0;
+        border-color: var(--coral);
+      }
+
+      .workspace {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 226px;
+        min-height: 542px;
+      }
+
+      .chat-pane {
+        padding: 16px;
+        border-right: 1px solid var(--line);
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+      }
+
+      .customer-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        padding-bottom: 12px;
+        border-bottom: 1px solid var(--line);
+      }
+
+      .customer-name {
+        font-size: 15px;
+        font-weight: 950;
+      }
+
+      .customer-meta {
+        color: var(--muted);
+        font-size: 12px;
+        margin-top: 2px;
+      }
+
+      .message {
+        max-width: 82%;
+        padding: 10px 12px;
+        border: 1px solid var(--line-strong);
+        border-radius: var(--radius);
+        font-size: 13px;
+        line-height: 1.55;
+        background: #f9fbf7;
+      }
+
+      .message.ai {
+        margin-left: auto;
+        background: #eef9f6;
+        border-color: #9bd7ca;
+      }
+
+      .agent-action {
+        border: 1px solid var(--ink);
+        border-radius: var(--radius);
+        padding: 12px;
+        background: #ffffff;
+        box-shadow: 4px 4px 0 rgba(184, 228, 93, 0.9);
+      }
+
+      .agent-action strong {
+        display: block;
+        font-size: 12px;
+        margin-bottom: 7px;
+      }
+
+      .agent-action p {
+        margin: 0;
+        color: var(--muted);
+        font-size: 12px;
+        line-height: 1.5;
+      }
+
+      .compose-row {
+        margin-top: auto;
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 8px;
+      }
+
+      .compose-row div {
+        min-height: 44px;
+        border: 1px solid var(--line-strong);
+        border-radius: var(--radius);
+        background: #f9fbf7;
+        padding: 11px 12px;
+        color: var(--muted);
+        font-size: 12px;
+      }
+
+      .compose-row button {
+        border: 1px solid var(--ink);
+        border-radius: var(--radius);
+        background: var(--ink);
+        color: white;
+        padding: 0 12px;
+        font-size: 12px;
+        font-weight: 900;
+      }
+
+      .intelligence-pane {
+        padding: 16px 14px;
+        background: #fbfcf9;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+      }
+
+      .side-block {
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+        padding: 10px;
+        background: white;
+      }
+
+      .side-block h4 {
+        margin: 0 0 7px;
+        font-size: 12px;
+      }
+
+      .side-block p,
+      .side-block li {
+        margin: 0;
+        color: var(--muted);
+        font-size: 11px;
+        line-height: 1.45;
+      }
+
+      .side-block ul {
+        margin: 0;
+        padding-left: 15px;
+      }
+
+      .confidence {
+        height: 10px;
+        border: 1px solid var(--line-strong);
+        border-radius: 999px;
+        background: #edf1ed;
+        overflow: hidden;
+        margin-top: 8px;
+      }
+
+      .confidence span {
+        display: block;
+        width: 91%;
+        height: 100%;
+        background: var(--teal);
+      }
+
+      .hero-copy {
+        position: relative;
+        z-index: 2;
+        width: min(var(--max), calc(100% - 40px));
+        margin: 0 auto;
+        padding-top: 20px;
+      }
+
+      .hero-text {
+        width: min(570px, 100%);
+      }
+
+      .eyebrow {
+        display: inline-flex;
+        align-items: center;
+        gap: 9px;
+        min-height: 32px;
+        border: 1px solid var(--ink);
+        border-radius: var(--radius);
+        background: var(--lime);
+        padding: 6px 10px;
+        font-size: 12px;
+        font-weight: 950;
+        box-shadow: 3px 3px 0 var(--ink);
+      }
+
+      .hero h1 {
+        margin: 22px 0 18px;
+        max-width: 570px;
+        font-size: 60px;
+        line-height: 1.03;
+        letter-spacing: 0;
+      }
+
+      .hero-lead {
+        max-width: 500px;
+        margin: 0;
+        color: #3d4b43;
+        font-size: 19px;
+        line-height: 1.7;
+        font-weight: 560;
+      }
+
+      .hero-actions {
+        margin-top: 26px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+      }
+
+      .hero-points {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: 24px;
+        max-width: 600px;
+      }
+
+      .point {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        border: 1px solid rgba(23, 33, 28, 0.2);
+        border-radius: var(--radius);
+        background: rgba(255, 255, 255, 0.78);
+        padding: 8px 10px;
+        color: var(--ink);
+        font-size: 13px;
+        font-weight: 800;
+      }
+
+      .point span {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: var(--teal);
+      }
+
+      .channel-strip {
+        background: var(--ink);
+        color: white;
+        border-bottom: 1px solid var(--ink);
+      }
+
+      .channel-strip-inner {
+        width: min(var(--max), calc(100% - 40px));
+        min-height: 78px;
+        margin: 0 auto;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 18px;
+      }
+
+      .channel-strip p {
+        margin: 0;
+        color: rgba(255, 255, 255, 0.78);
+        font-size: 14px;
+        font-weight: 720;
+      }
+
+      .channel-logos {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        justify-content: flex-end;
+      }
+
+      .channel-logo {
+        border: 1px solid rgba(255, 255, 255, 0.24);
+        border-radius: 6px;
+        padding: 7px 9px;
+        font-size: 12px;
+        font-weight: 900;
+        color: white;
+        background: rgba(255, 255, 255, 0.08);
+      }
+
+      .section {
+        padding: 92px 0;
+        border-bottom: 1px solid var(--line);
+        background: var(--soft);
+      }
+
+      .section.white {
+        background: var(--paper);
+      }
+
+      .section.dark {
+        background: var(--ink);
+        color: white;
+        border-bottom-color: rgba(255, 255, 255, 0.12);
+      }
+
+      .wrap {
+        width: min(var(--max), calc(100% - 40px));
+        margin: 0 auto;
+      }
+
+      .section-head {
+        display: grid;
+        grid-template-columns: minmax(0, 0.88fr) minmax(300px, 0.62fr);
+        gap: 54px;
+        align-items: end;
+        margin-bottom: 42px;
+      }
+
+      .section-kicker {
+        margin: 0 0 12px;
+        color: var(--teal-dark);
+        font-size: 13px;
+        font-weight: 950;
+      }
+
+      .dark .section-kicker {
+        color: var(--lime);
+      }
+
+      h2 {
+        margin: 0;
+        font-size: 44px;
+        line-height: 1.15;
+        letter-spacing: 0;
+      }
+
+      h3 {
+        margin: 0;
+        font-size: 24px;
+        line-height: 1.3;
+        letter-spacing: 0;
+      }
+
+      .section-copy {
+        margin: 0;
+        color: var(--muted);
+        font-size: 17px;
+        line-height: 1.75;
+      }
+
+      .dark .section-copy {
+        color: rgba(255, 255, 255, 0.74);
+      }
+
+      .os-principles {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 14px;
+      }
+
+      .principle {
+        min-height: 232px;
+        border: 1px solid rgba(255, 255, 255, 0.16);
+        border-radius: var(--radius);
+        padding: 20px;
+        background: rgba(255, 255, 255, 0.06);
+      }
+
+      .principle-number {
+        width: 38px;
+        height: 38px;
+        border: 1px solid rgba(255, 255, 255, 0.28);
+        border-radius: var(--radius);
+        display: grid;
+        place-items: center;
+        margin-bottom: 18px;
+        color: var(--lime);
+        font-weight: 950;
+      }
+
+      .principle h3 {
+        font-size: 21px;
+        margin-bottom: 10px;
+      }
+
+      .principle p {
+        margin: 0;
+        color: rgba(255, 255, 255, 0.72);
+        line-height: 1.65;
+        font-size: 14px;
+      }
+
+      .agent-layout {
+        display: grid;
+        grid-template-columns: 320px minmax(0, 1fr);
+        gap: 24px;
+        align-items: start;
+      }
+
+      .agent-tabs {
+        display: grid;
+        gap: 10px;
+      }
+
+      .agent-tab {
+        border: 1px solid var(--line-strong);
+        border-radius: var(--radius);
+        padding: 15px;
+        background: var(--paper);
+        color: var(--ink);
+        text-align: left;
+        cursor: pointer;
+      }
+
+      .agent-tab[aria-selected="true"] {
+        border-color: var(--ink);
+        background: var(--mint);
+        box-shadow: 5px 5px 0 var(--ink);
+      }
+
+      .agent-tab strong {
+        display: block;
+        font-size: 16px;
+        margin-bottom: 5px;
+      }
+
+      .agent-tab span {
+        color: var(--muted);
+        font-size: 13px;
+        line-height: 1.5;
+      }
+
+      .agent-panel {
+        min-height: 520px;
+        border: 1px solid var(--ink);
+        border-radius: var(--radius);
+        background: var(--paper);
+        box-shadow: var(--shadow-soft);
+        overflow: hidden;
+      }
+
+      .agent-panel-top {
+        min-height: 72px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 18px;
+        padding: 18px 20px;
+        border-bottom: 1px solid var(--line);
+        background: #fbfcf9;
+      }
+
+      .agent-panel-top p {
+        margin: 0;
+        color: var(--muted);
+        font-size: 14px;
+      }
+
+      .agent-panel-top strong {
+        display: block;
+        font-size: 20px;
+        margin-bottom: 4px;
+      }
+
+      .agent-state {
+        border: 1px solid var(--ink);
+        border-radius: var(--radius);
+        padding: 8px 10px;
+        background: var(--lime);
+        font-size: 12px;
+        font-weight: 950;
+        white-space: nowrap;
+      }
+
+      .agent-body {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 280px;
+        gap: 0;
+      }
+
+      .agent-main {
+        padding: 22px;
+        border-right: 1px solid var(--line);
+      }
+
+      .agent-main h3 {
+        margin-bottom: 12px;
+      }
+
+      .agent-main p {
+        margin: 0 0 20px;
+        color: var(--muted);
+        line-height: 1.75;
+        font-size: 16px;
+      }
+
+      .capability-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
+      }
+
+      .capability {
+        min-height: 92px;
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+        padding: 13px;
+        background: #f9fbf7;
+      }
+
+      .capability strong {
+        display: block;
+        margin-bottom: 5px;
+        font-size: 14px;
+      }
+
+      .capability span {
+        color: var(--muted);
+        font-size: 13px;
+        line-height: 1.45;
+      }
+
+      .agent-side {
+        padding: 22px;
+        background: #f8faf7;
+      }
+
+      .mini-stack {
+        display: grid;
+        gap: 10px;
+      }
+
+      .mini-item {
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+        background: white;
+        padding: 12px;
+      }
+
+      .mini-item strong {
+        display: block;
+        font-size: 13px;
+        margin-bottom: 6px;
+      }
+
+      .mini-item span {
+        display: block;
+        color: var(--muted);
+        font-size: 12px;
+        line-height: 1.45;
+      }
+
+      .mode-grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 14px;
+      }
+
+      .mode-card {
+        min-height: 344px;
+        border: 1px solid var(--line-strong);
+        border-radius: var(--radius);
+        padding: 22px;
+        background: var(--paper);
+        box-shadow: var(--shadow-soft);
+      }
+
+      .mode-card.highlight {
+        border-color: var(--ink);
+        background: var(--mint);
+        box-shadow: 7px 7px 0 var(--ink);
+      }
+
+      .mode-card h3 {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 12px;
+      }
+
+      .mode-label {
+        border: 1px solid currentColor;
+        border-radius: 6px;
+        padding: 5px 7px;
+        font-size: 11px;
+        font-weight: 950;
+        color: var(--teal-dark);
+        white-space: nowrap;
+      }
+
+      .mode-card p {
+        color: var(--muted);
+        line-height: 1.7;
+        font-size: 15px;
+        margin: 0 0 18px;
+      }
+
+      .mode-card ul,
+      .backoffice-card ul,
+      .feature-card ul {
+        margin: 0;
+        padding-left: 19px;
+        color: var(--muted);
+        line-height: 1.8;
+        font-size: 14px;
+      }
+
+      .backoffice-layout {
+        display: grid;
+        grid-template-columns: minmax(0, 0.92fr) minmax(340px, 0.74fr);
+        gap: 24px;
+        align-items: stretch;
+      }
+
+      .backoffice-demo {
+        border: 1px solid var(--ink);
+        border-radius: var(--radius);
+        background: var(--paper);
+        overflow: hidden;
+        box-shadow: var(--shadow);
+      }
+
+      .backoffice-head {
+        min-height: 66px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 16px 18px;
+        border-bottom: 1px solid var(--line);
+        background: #fbfcf9;
+      }
+
+      .backoffice-head strong {
+        display: block;
+        font-size: 18px;
+      }
+
+      .backoffice-head span {
+        color: var(--muted);
+        font-size: 12px;
+      }
+
+      .recommendation-list {
+        padding: 18px;
+        display: grid;
+        gap: 12px;
+      }
+
+      .recommendation {
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+        padding: 14px;
+        background: #fbfcf9;
+      }
+
+      .recommendation-top {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 8px;
+      }
+
+      .recommendation strong {
+        font-size: 14px;
+      }
+
+      .recommendation p {
+        margin: 0;
+        color: var(--muted);
+        font-size: 13px;
+        line-height: 1.55;
+      }
+
+      .recommendation-actions {
+        display: flex;
+        gap: 8px;
+        margin-top: 12px;
+      }
+
+      .tiny-button {
+        border: 1px solid var(--line-strong);
+        border-radius: 6px;
+        background: white;
+        padding: 7px 9px;
+        color: var(--ink);
+        font-size: 12px;
+        font-weight: 850;
+        cursor: pointer;
+      }
+
+      .tiny-button.accept {
+        border-color: var(--ink);
+        background: var(--lime);
+      }
+
+      .backoffice-cards {
+        display: grid;
+        gap: 14px;
+      }
+
+      .backoffice-card {
+        border: 1px solid var(--line-strong);
+        border-radius: var(--radius);
+        background: var(--paper);
+        padding: 22px;
+      }
+
+      .backoffice-card h3 {
+        margin-bottom: 10px;
+      }
+
+      .backoffice-card p {
+        margin: 0 0 14px;
+        color: var(--muted);
+        line-height: 1.65;
+      }
+
+      .knowledge-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 18px;
+      }
+
+      .knowledge-box {
+        border: 1px solid rgba(255, 255, 255, 0.18);
+        border-radius: var(--radius);
+        background: rgba(255, 255, 255, 0.06);
+        padding: 24px;
+      }
+
+      .knowledge-box h3 {
+        margin-bottom: 12px;
+      }
+
+      .knowledge-box p {
+        margin: 0 0 16px;
+        color: rgba(255, 255, 255, 0.75);
+        line-height: 1.75;
+      }
+
+      .knowledge-list {
+        display: grid;
+        gap: 9px;
+      }
+
+      .knowledge-list span {
+        border: 1px solid rgba(255, 255, 255, 0.18);
+        border-radius: 6px;
+        padding: 9px 10px;
+        color: rgba(255, 255, 255, 0.85);
+        font-size: 14px;
+        background: rgba(255, 255, 255, 0.05);
+      }
+
+      .feature-grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 14px;
+      }
+
+      .feature-card {
+        min-height: 270px;
+        border: 1px solid var(--line-strong);
+        border-radius: var(--radius);
+        padding: 20px;
+        background: var(--paper);
+      }
+
+      .feature-icon {
+        width: 42px;
+        height: 42px;
+        border: 1px solid var(--ink);
+        border-radius: var(--radius);
+        display: grid;
+        place-items: center;
+        margin-bottom: 16px;
+        background: var(--lime);
+        font-weight: 950;
+      }
+
+      .feature-card h3 {
+        font-size: 21px;
+        margin-bottom: 10px;
+      }
+
+      .feature-card p {
+        margin: 0;
+        color: var(--muted);
+        line-height: 1.7;
+        font-size: 15px;
+      }
+
+      .outcome-band {
+        display: grid;
+        grid-template-columns: 0.72fr 1fr;
+        gap: 34px;
+        align-items: start;
+      }
+
+      .metrics {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 12px;
+      }
+
+      .metric {
+        min-height: 142px;
+        border: 1px solid var(--line-strong);
+        border-radius: var(--radius);
+        background: var(--paper);
+        padding: 18px;
+      }
+
+      .metric strong {
+        display: block;
+        color: var(--teal-dark);
+        font-size: 32px;
+        line-height: 1;
+        margin-bottom: 12px;
+      }
+
+      .metric span {
+        color: var(--muted);
+        line-height: 1.5;
+        font-size: 14px;
+      }
+
+      .cta-section {
+        position: relative;
+        padding: 94px 0;
+        background: #e9f6ed;
+        overflow: hidden;
+      }
+
+      .cta-section::before {
+        content: "";
+        position: absolute;
+        inset: 28px;
+        border: 1px solid rgba(23, 33, 28, 0.12);
+        border-radius: var(--radius);
+        pointer-events: none;
+      }
+
+      .cta-inner {
+        position: relative;
+        z-index: 1;
+        width: min(920px, calc(100% - 40px));
+        margin: 0 auto;
+        text-align: center;
+      }
+
+      .cta-inner h2 {
+        font-size: 50px;
+      }
+
+      .cta-inner p {
+        margin: 18px auto 0;
+        max-width: 760px;
+        color: var(--muted);
+        font-size: 18px;
+        line-height: 1.75;
+      }
+
+      .cta-actions {
+        margin-top: 28px;
+        display: flex;
+        justify-content: center;
+        flex-wrap: wrap;
+        gap: 12px;
+      }
+
+      .footer {
+        background: var(--ink);
+        color: white;
+        padding: 32px 0;
+      }
+
+      .footer-inner {
+        width: min(var(--max), calc(100% - 40px));
+        margin: 0 auto;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        color: rgba(255, 255, 255, 0.72);
+        font-size: 13px;
+      }
+
+      .footer strong {
+        color: white;
+      }
+
+      @media (max-width: 1120px) {
+        .hero {
+          min-height: 780px;
+          height: auto;
+          max-height: none;
+        }
+
+        .hero-scene {
+          padding: 0;
+        }
+
+        .hero-scene::before {
+          background: rgba(238, 245, 239, 0.7);
+        }
+
+        .os-board {
+          top: 352px;
+          right: -260px;
+          width: 900px;
+          opacity: 0.58;
+          transform: none;
+        }
+
+        .hero-copy {
+          align-self: start;
+          padding-top: 72px;
+        }
+
+        .hero h1 {
+          font-size: 54px;
+        }
+
+        .section-head,
+        .backoffice-layout,
+        .outcome-band {
+          grid-template-columns: 1fr;
+        }
+
+        .os-principles,
+        .feature-grid {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+        .agent-layout,
+        .agent-body {
+          grid-template-columns: 1fr;
+        }
+
+        .agent-main {
+          border-right: 0;
+          border-bottom: 1px solid var(--line);
+        }
+      }
+
+      @media (max-width: 820px) {
+        .nav-links {
+          display: none;
+        }
+
+        .nav-inner {
+          width: min(100% - 28px, var(--max));
+        }
+
+        .hero {
+          min-height: 760px;
+        }
+
+        .hero-copy,
+        .wrap,
+        .channel-strip-inner,
+        .footer-inner {
+          width: min(100% - 28px, var(--max));
+        }
+
+        .hero h1 {
+          font-size: 41px;
+        }
+
+        .hero-lead {
+          font-size: 16px;
+        }
+
+        .hero-scene {
+          padding: 0;
+        }
+
+        .os-board {
+          top: 520px;
+          left: 14px;
+          right: auto;
+          width: 780px;
+          min-width: 780px;
+          opacity: 0.4;
+        }
+
+        h2 {
+          font-size: 33px;
+        }
+
+        .cta-inner h2 {
+          font-size: 36px;
+        }
+
+        .section {
+          padding: 68px 0;
+        }
+
+        .channel-strip-inner,
+        .footer-inner {
+          flex-direction: column;
+          align-items: flex-start;
+          padding: 18px 0;
+        }
+
+        .channel-logos {
+          justify-content: flex-start;
+        }
+
+        .os-principles,
+        .mode-grid,
+        .feature-grid,
+        .knowledge-grid,
+        .metrics,
+        .capability-grid {
+          grid-template-columns: 1fr;
+        }
+
+        .mode-card,
+        .feature-card {
+          min-height: auto;
+        }
+      }
+
+      @media (max-width: 520px) {
+        .brand span:last-child {
+          display: none;
+        }
+
+        .nav-actions .button.secondary {
+          display: none;
+        }
+
+        .button {
+          width: 100%;
+        }
+
+        .nav-actions .button {
+          width: auto;
+        }
+
+        .hero-actions,
+        .cta-actions {
+          flex-direction: column;
+        }
+
+        .hero h1 {
+          font-size: 34px;
+        }
+
+        .hero {
+          min-height: 820px;
+        }
+
+        .hero-scene {
+          padding: 0;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="site-shell">
+      <header class="nav" aria-label="Main navigation">
+        <div class="nav-inner">
+          <a class="brand" href="#top" aria-label="CRMOS360 home">
+            <span class="brand-mark">360</span>
+            <span>CRMOS360</span>
+          </a>
+          <nav class="nav-links" aria-label="Page sections">
+            <a href="#ai-os">AI OS</a>
+            <a href="#agents">Agents</a>
+            <a href="#autopilot">Autopilot</a>
+            <a href="#backoffice">Backoffice</a>
+            <a href="#features">Features</a>
+          </nav>
+          <div class="nav-actions">
+            <a class="button secondary" href="#demo">ดูภาพรวม</a>
+            <a class="button primary" href="#contact">ขอดูเดโม</a>
+          </div>
+        </div>
+      </header>
+
+      <main id="top">
+        <section class="hero" aria-labelledby="hero-title">
+          <div class="hero-scene" aria-hidden="true">
+            <div class="os-board">
+              <div class="os-topbar">
+                <div class="window-dots"><span></span><span></span><span></span></div>
+                <div class="system-status"><span class="pulse"></span> AI OS Online</div>
+              </div>
+              <div class="os-grid">
+                <div class="channel-rail">
+                  <div class="channel-tile active" data-count="8">LINE</div>
+                  <div class="channel-tile" data-count="5">TikTok</div>
+                  <div class="channel-tile" data-count="4">Shopee</div>
+                  <div class="channel-tile" data-count="3">Lazada</div>
+                  <div class="channel-tile" data-count="6">Meta</div>
+                  <div class="channel-tile" data-count="2">Email</div>
+                </div>
+
+                <div class="conversation-list">
+                  <div class="panel-title">
+                    <span>Unified Commerce Inbox</span>
+                    <span class="tiny-filter">Live</span>
+                  </div>
+                  <div class="thread hot">
+                    <div class="thread-top">
+                      <span>คุณพิมพ์พร · LINE OA</span>
+                      <span class="badge auto">Auto</span>
+                    </div>
+                    <p>ถามเลข tracking ของออเดอร์ล่าสุด ระบบเช็กข้อมูลและตอบได้ทันที</p>
+                  </div>
+                  <div class="thread">
+                    <div class="thread-top">
+                      <span>TikTok Shop Buyer</span>
+                      <span class="badge approval">Approval</span>
+                    </div>
+                    <p>ลูกค้าขอเปลี่ยนสินค้า AI ร่างคำตอบพร้อมขั้นตอนให้ทีมอนุมัติ</p>
+                  </div>
+                  <div class="thread">
+                    <div class="thread-top">
+                      <span>Shopee Complaint</span>
+                      <span class="badge escalate">Escalate</span>
+                    </div>
+                    <p>ลูกค้าไม่พอใจเรื่องจัดส่งล่าช้า ส่งต่อหัวหน้าทีมพร้อมสรุปเคส</p>
+                  </div>
+                  <div class="thread">
+                    <div class="thread-top">
+                      <span>Instagram Lead</span>
+                      <span class="badge">Growth</span>
+                    </div>
+                    <p>AI แนะนำสินค้าที่เกี่ยวข้องและคูปองสำหรับ follow-up</p>
+                  </div>
+                </div>
+
+                <div class="workspace">
+                  <div class="chat-pane">
+                    <div class="customer-head">
+                      <div>
+                        <div class="customer-name">Customer 360 · คุณพิมพ์พร</div>
+                        <div class="customer-meta">ลูกค้าประจำ · เคยซื้อ 4 ครั้ง · sentiment ดี</div>
+                      </div>
+                      <span class="badge auto">91% confidence</span>
+                    </div>
+                    <div class="message">
+                      ขอเลขพัสดุของออเดอร์ล่าสุดหน่อยค่ะ สั่งจาก Shopee เมื่อวาน
+                    </div>
+                    <div class="agent-action">
+                      <strong>Operations Agent ตรวจสอบออเดอร์แล้ว</strong>
+                      <p>พบออเดอร์ SP-7721 กำลังจัดส่งโดย Flash Express พร้อมเลข tracking TH8742XXXX</p>
+                    </div>
+                    <div class="message ai">
+                      ได้เลยค่ะ ออเดอร์ SP-7721 จัดส่งแล้วโดย Flash Express เลขพัสดุ TH8742XXXX สามารถติดตามสถานะได้เลยค่ะ
+                    </div>
+                    <div class="compose-row">
+                      <div>AI แนะนำให้ตอบอัตโนมัติ เพราะเป็นเคสปลอดภัยและข้อมูลครบถ้วน</div>
+                      <button>Send</button>
+                    </div>
+                  </div>
+
+                  <div class="intelligence-pane">
+                    <div class="side-block">
+                      <h4>AI Configuration Advisor</h4>
+                      <p>แนะนำให้เปิด Auto-Reply สำหรับ tracking request ที่มั่นใจเกิน 85%</p>
+                      <div class="confidence"><span></span></div>
+                    </div>
+                    <div class="side-block">
+                      <h4>Customer Memory</h4>
+                      <ul>
+                        <li>ชอบโปรส่งฟรี</li>
+                        <li>เคย complaint เรื่องส่งช้า</li>
+                        <li>ตอบด้วย tone สุภาพและกระชับ</li>
+                      </ul>
+                    </div>
+                    <div class="side-block">
+                      <h4>Lesson Suggested</h4>
+                      <p>ถ้าลูกค้าถาม tracking ให้แจ้งขนส่งก่อน แล้วตามด้วยเลขพัสดุ</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="hero-copy">
+            <div class="hero-text">
+              <span class="eyebrow">AI OS for Customer Operations</span>
+              <h1 id="hero-title">CRMOS360 AI OS สำหรับทีมขาย ซัพพอร์ต และ Social Commerce</h1>
+              <p class="hero-lead">
+                รวมแชทลูกค้าจาก LINE OA, Facebook, Instagram, TikTok Shop, Shopee, Lazada และช่องทางอื่นไว้ในระบบเดียว พร้อม AI Agents ที่ตอบเองได้เมื่อมั่นใจ รออนุมัติเมื่อเคสสำคัญ ทำงานหลังบ้าน แนะนำการตั้งค่า และเรียนรู้จากธุรกิจของคุณอย่างต่อเนื่อง
+              </p>
+              <div class="hero-actions">
+                <a class="button primary" href="#contact">ขอดูเดโม CRMOS360</a>
+                <a class="button secondary" href="#ai-os">ดู USP หลัก</a>
+              </div>
+              <div class="hero-points" aria-label="Key product promises">
+                <span class="point"><span></span> Auto Reply แบบควบคุมได้</span>
+                <span class="point"><span></span> AI-managed Backoffice</span>
+                <span class="point"><span></span> Customer Memory</span>
+                <span class="point"><span></span> Marketplace Workflows</span>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="channel-strip" aria-label="Supported channels">
+          <div class="channel-strip-inner">
+            <p>สร้างมาเพื่อธุรกิจไทยและ SEA ที่ขายและบริการลูกค้าหลายช่องทางทุกวัน</p>
+            <div class="channel-logos">
+              <span class="channel-logo">LINE OA</span>
+              <span class="channel-logo">TikTok Shop</span>
+              <span class="channel-logo">Shopee</span>
+              <span class="channel-logo">Lazada</span>
+              <span class="channel-logo">Facebook</span>
+              <span class="channel-logo">Instagram</span>
+              <span class="channel-logo">Email</span>
+            </div>
+          </div>
+        </section>
+
+        <section class="section dark" id="ai-os">
+          <div class="wrap">
+            <div class="section-head">
+              <div>
+                <p class="section-kicker">The Core Positioning</p>
+                <h2>ไม่ใช่แค่ Unified Inbox แต่คือ AI Operating System สำหรับ Customer Operations</h2>
+              </div>
+              <p class="section-copy">
+                CRMOS360 เชื่อมบทสนทนา ข้อมูลลูกค้า ออเดอร์ marketplace workflow ทีมงาน knowledge base และ AI automation เข้าด้วยกัน เพื่อเปลี่ยนทุกข้อความให้กลายเป็น action และ intelligence สำหรับธุรกิจ
+              </p>
+            </div>
+
+            <div class="os-principles">
+              <article class="principle">
+                <div class="principle-number">01</div>
+                <h3>Observe</h3>
+                <p>รวมแชท ออเดอร์ customer profile และ activity จากทุกช่องทางไว้ในมุมมองเดียว</p>
+              </article>
+              <article class="principle">
+                <div class="principle-number">02</div>
+                <h3>Understand</h3>
+                <p>AI วิเคราะห์ intent, sentiment, urgency, customer history และ business rules ก่อนแนะนำคำตอบ</p>
+              </article>
+              <article class="principle">
+                <div class="principle-number">03</div>
+                <h3>Act</h3>
+                <p>ให้ AI ตอบเอง รออนุมัติ สร้าง ticket เช็กออเดอร์ เรียก API หรือส่งต่อทีมที่เกี่ยวข้อง</p>
+              </article>
+              <article class="principle">
+                <div class="principle-number">04</div>
+                <h3>Learn</h3>
+                <p>เรียนรู้จากคำตอบที่ทีมแก้ไข เคสที่ถูก escalate และ lesson ที่ manager อนุมัติ</p>
+              </article>
+            </div>
+          </div>
+        </section>
+
+        <section class="section white" id="agents">
+          <div class="wrap">
+            <div class="section-head">
+              <div>
+                <p class="section-kicker">AI Agent Team</p>
+                <h2>ขับเคลื่อนด้วย 3 AI Agents ที่เข้าใจงานหน้าบ้านและหลังบ้าน</h2>
+              </div>
+              <p class="section-copy">
+                ไม่ต้องสร้าง agent เยอะจนซับซ้อน CRMOS360 วาง agent เป็น 3 บทบาทหลักที่ธุรกิจเข้าใจง่าย: ดูแลลูกค้า ทำงานหลังบ้าน และช่วยสร้างรายได้จากบทสนทนา
+              </p>
+            </div>
+
+            <div class="agent-layout">
+              <div class="agent-tabs" role="tablist" aria-label="AI agents">
+                <button class="agent-tab" role="tab" aria-selected="true" data-agent="service">
+                  <strong>Customer Service Agent</strong>
+                  <span>ตัวหลักสำหรับตอบลูกค้า จำบริบท และจัดการเคสประจำวัน</span>
+                </button>
+                <button class="agent-tab" role="tab" aria-selected="false" data-agent="ops">
+                  <strong>Operations Agent</strong>
+                  <span>เชื่อมแชทกับออเดอร์ ticket API workflow และทีมหลังบ้าน</span>
+                </button>
+                <button class="agent-tab" role="tab" aria-selected="false" data-agent="growth">
+                  <strong>Growth Agent</strong>
+                  <span>แนะนำสินค้า โปรโมชั่น follow-up และ insight เพื่อเพิ่มรายได้</span>
+                </button>
+              </div>
+
+              <article class="agent-panel" id="agent-panel">
+                <div class="agent-panel-top">
+                  <div>
+                    <strong id="agent-title">Customer Service Agent</strong>
+                    <p id="agent-subtitle">AI ตัวหลักสำหรับดูแลลูกค้าทุกช่องทาง</p>
+                  </div>
+                  <span class="agent-state" id="agent-state">Main Character</span>
+                </div>
+                <div class="agent-body">
+                  <div class="agent-main">
+                    <h3 id="agent-heading">ตอบลูกค้าเร็วขึ้น โดยยังรักษาคุณภาพและบริบทของแบรนด์</h3>
+                    <p id="agent-description">
+                      Customer Service Agent ช่วยตอบคำถาม แนะนำคำตอบ สรุปบทสนทนา วิเคราะห์ intent ตรวจจับ sentiment แปลภาษา จดจำบริบทลูกค้า และแจ้งเตือนเมื่อควรส่งต่อให้มนุษย์
+                    </p>
+                    <div class="capability-grid" id="agent-capabilities">
+                      <div class="capability"><strong>Auto Reply</strong><span>ตอบคำถามที่ปลอดภัยและเกิดซ้ำได้ทันที</span></div>
+                      <div class="capability"><strong>Approval Draft</strong><span>ร่างคำตอบให้ทีมตรวจในเคสสำคัญ</span></div>
+                      <div class="capability"><strong>Customer Memory</strong><span>จำประวัติ ความสนใจ และปัญหาเดิม</span></div>
+                      <div class="capability"><strong>Sentiment & Intent</strong><span>รู้ว่าลูกค้ากำลังถามอะไรและรู้สึกอย่างไร</span></div>
+                    </div>
+                  </div>
+                  <aside class="agent-side">
+                    <div class="mini-stack" id="agent-mini">
+                      <div class="mini-item">
+                        <strong>เหมาะกับ</strong>
+                        <span>LINE OA, TikTok Shop, Shopee, Lazada, Facebook, Instagram และ Email</span>
+                      </div>
+                      <div class="mini-item">
+                        <strong>ตัวอย่างเคส</strong>
+                        <span>ถามสินค้า โปรโมชั่น ค่าจัดส่ง วิธีชำระเงิน และ complaint เบื้องต้น</span>
+                      </div>
+                      <div class="mini-item">
+                        <strong>ผลลัพธ์</strong>
+                        <span>ลดเวลาตอบซ้ำ ทำให้ agent ใหม่ตอบได้เหมือนคนมีประสบการณ์</span>
+                      </div>
+                    </div>
+                  </aside>
+                </div>
+              </article>
+            </div>
+          </div>
+        </section>
+
+        <section class="section" id="autopilot">
+          <div class="wrap">
+            <div class="section-head">
+              <div>
+                <p class="section-kicker">Controlled Autopilot</p>
+                <h2>Auto Reply ได้ แต่ควบคุมได้ตามความเสี่ยงของแต่ละเคส</h2>
+              </div>
+              <p class="section-copy">
+                CRMOS360 ไม่ได้ปล่อยให้ AI ตอบทุกอย่างแบบเสี่ยง ๆ แต่ให้ธุรกิจกำหนดระดับ automation ได้ ตั้งแต่ตอบอัตโนมัติ ร่างคำตอบรออนุมัติ ไปจนถึงส่งต่อให้คนดูแลทันที
+              </p>
+            </div>
+
+            <div class="mode-grid">
+              <article class="mode-card highlight">
+                <h3>Auto-Reply Mode <span class="mode-label">High Confidence</span></h3>
+                <p>สำหรับคำถามที่ปลอดภัย เกิดซ้ำ และข้อมูลครบถ้วน AI สามารถตอบลูกค้าได้ทันทีเพื่อลดเวลารอ</p>
+                <ul>
+                  <li>เวลาเปิดปิดและค่าจัดส่ง</li>
+                  <li>โปรโมชั่นและวิธีชำระเงิน</li>
+                  <li>เช็กสถานะออเดอร์และเลขพัสดุ</li>
+                  <li>FAQ ทั่วไปของสินค้าและบริการ</li>
+                </ul>
+              </article>
+
+              <article class="mode-card">
+                <h3>Approval Mode <span class="mode-label">Human Review</span></h3>
+                <p>สำหรับเคสสำคัญ AI จะร่างคำตอบพร้อมเหตุผลให้ทีมตรวจสอบก่อนส่งจริง</p>
+                <ul>
+                  <li>refund, return และ complaint</li>
+                  <li>ลูกค้าไม่พอใจหรือเคส VIP</li>
+                  <li>คำถามที่มีผลต่อยอดขายสูง</li>
+                  <li>policy exception หรือ AI ยังไม่มั่นใจ</li>
+                </ul>
+              </article>
+
+              <article class="mode-card">
+                <h3>Escalation Mode <span class="mode-label">Human Care</span></h3>
+                <p>สำหรับเคสซับซ้อนหรือเสี่ยง AI จะไม่ตอบเอง แต่สรุปบริบทและส่งต่อให้คนที่เหมาะสม</p>
+                <ul>
+                  <li>ข้อพิพาทการชำระเงิน</li>
+                  <li>ลูกค้าขู่รีวิวเสียหาย</li>
+                  <li>ข้อมูลไม่ครบหรือความเสี่ยงด้านแบรนด์</li>
+                  <li>เคสที่ควรให้หัวหน้าทีมดูแล</li>
+                </ul>
+              </article>
+            </div>
+          </div>
+        </section>
+
+        <section class="section white" id="backoffice">
+          <div class="wrap">
+            <div class="section-head">
+              <div>
+                <p class="section-kicker">AI-managed Backoffice</p>
+                <h2>หลังบ้านที่ AI ช่วยตั้งค่า แนะนำ และดูแลให้ดีขึ้นเรื่อย ๆ</h2>
+              </div>
+              <p class="section-copy">
+                จุดต่างของ CRMOS360 คือ AI ไม่ได้ช่วยแค่หน้าบ้านในการตอบลูกค้า แต่ช่วยจัดการหลังบ้าน ตั้งแต่ setup, knowledge base, workflow, auto-reply rules, escalation rules และ configuration recommendations
+              </p>
+            </div>
+
+            <div class="backoffice-layout">
+              <div class="backoffice-demo" id="demo">
+                <div class="backoffice-head">
+                  <div>
+                    <strong>AI Configuration Advisor</strong>
+                    <span>คำแนะนำจากพฤติกรรมการใช้งานจริง</span>
+                  </div>
+                  <span class="badge auto">4 recommendations</span>
+                </div>
+                <div class="recommendation-list">
+                  <article class="recommendation">
+                    <div class="recommendation-top">
+                      <strong>เปิด Auto Reply สำหรับ tracking request</strong>
+                      <span class="badge auto">91% confidence</span>
+                    </div>
+                    <p>ใน 7 วันที่ผ่านมา ทีมอนุมัติคำตอบประเภทนี้ 124 ครั้ง และแก้ไขน้อยกว่า 3% แนะนำให้เปิด auto-reply เมื่อ order API ส่งข้อมูลครบถ้วน</p>
+                    <div class="recommendation-actions">
+                      <button class="tiny-button accept">Approve</button>
+                      <button class="tiny-button">Review rule</button>
+                    </div>
+                  </article>
+
+                  <article class="recommendation">
+                    <div class="recommendation-top">
+                      <strong>เพิ่ม escalation rule สำหรับ complaint จาก Shopee</strong>
+                      <span class="badge approval">Review</span>
+                    </div>
+                    <p>เคส complaint จาก Shopee มี sentiment ลบสูงกว่าช่องทางอื่น 28% แนะนำให้ส่งต่อหัวหน้าทีมเมื่อมีคำว่า “คืนเงิน” หรือ “รีวิว”</p>
+                    <div class="recommendation-actions">
+                      <button class="tiny-button accept">Approve</button>
+                      <button class="tiny-button">Edit trigger</button>
+                    </div>
+                  </article>
+
+                  <article class="recommendation">
+                    <div class="recommendation-top">
+                      <strong>เพิ่ม FAQ เรื่องคูปอง TikTok Shop</strong>
+                      <span class="badge">Knowledge</span>
+                    </div>
+                    <p>ลูกค้าถามเรื่องใช้คูปองไม่ได้ซ้ำ 46 ครั้งในเดือนนี้ แนะนำให้เพิ่ม policy และตัวอย่างคำตอบลง knowledge base</p>
+                    <div class="recommendation-actions">
+                      <button class="tiny-button accept">Add lesson</button>
+                      <button class="tiny-button">Preview answer</button>
+                    </div>
+                  </article>
+                </div>
+              </div>
+
+              <div class="backoffice-cards">
+                <article class="backoffice-card">
+                  <h3>AI Setup Assistant</h3>
+                  <p>เริ่มต้นจากประเภทธุรกิจ ช่องทางที่ใช้ นโยบายจัดส่ง นโยบายคืนสินค้า tone of voice และ workflow ที่ควรเปิดก่อน</p>
+                  <ul>
+                    <li>ไม่ต้องเริ่มจากหน้าจอว่าง</li>
+                    <li>ไม่ต้องเขียน rule ซับซ้อนเองทั้งหมด</li>
+                    <li>เหมาะกับทีมธุรกิจ ไม่ใช่เฉพาะทีมเทคนิค</li>
+                  </ul>
+                </article>
+
+                <article class="backoffice-card">
+                  <h3>AI Workflow Builder จากภาษาคน</h3>
+                  <p>บอกระบบด้วยภาษาธรรมชาติ เช่น “ถ้าลูกค้าถามออเดอร์ ให้เช็กสถานะก่อน แล้วตอบพร้อมเลข tracking”</p>
+                  <ul>
+                    <li>AI แปลงเป็น workflow ให้ตรวจสอบ</li>
+                    <li>แก้ trigger, condition และ action ได้ก่อนใช้งานจริง</li>
+                    <li>รองรับ API, webhook, ticket และ internal routing</li>
+                  </ul>
+                </article>
+
+                <article class="backoffice-card">
+                  <h3>AI Maintenance</h3>
+                  <p>ระบบตรวจจับว่าอะไรควรปรับ เช่น คำตอบที่ agent แก้บ่อย เคสที่ควรเปลี่ยนเป็น auto-reply หรือ policy ที่ควรเพิ่มใน knowledge base</p>
+                </article>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="section dark">
+          <div class="wrap">
+            <div class="section-head">
+              <div>
+                <p class="section-kicker">Self-improving AI</p>
+                <h2>AI ที่เรียนรู้จากธุรกิจของคุณ ไม่ใช่ AI ทั่วไปที่ตอบเหมือนกันทุกแบรนด์</h2>
+              </div>
+              <p class="section-copy">
+                CRMOS360 ใช้ Knowledge Base เป็น source of truth และ Lesson System เป็น playbook ที่พัฒนาจากการทำงานจริง ทุก lesson ต้องผ่านการอนุมัติของ manager เพื่อให้ automation ฉลาดขึ้นโดยไม่เสียการควบคุม
+              </p>
+            </div>
+
+            <div class="knowledge-grid">
+              <article class="knowledge-box">
+                <h3>Knowledge Base</h3>
+                <p>แหล่งความรู้หลักของธุรกิจที่ AI ใช้อ้างอิงก่อนตอบลูกค้า</p>
+                <div class="knowledge-list">
+                  <span>รายละเอียดสินค้า ราคา โปรโมชั่น และ FAQ</span>
+                  <span>นโยบายจัดส่ง คืนสินค้า refund และ marketplace rules</span>
+                  <span>น้ำเสียงของแบรนด์ วิธีรับมือ complaint และ escalation policy</span>
+                  <span>ข้อมูลบริการ แพ็กเกจ คำถามคลินิก หรือคำถามเฉพาะธุรกิจ</span>
+                </div>
+              </article>
+
+              <article class="knowledge-box">
+                <h3>Lesson System</h3>
+                <p>บทเรียนจากการใช้งานจริง เช่น คำตอบที่ทีมแก้ไข คำตอบที่ถูกอนุมัติ และเคสที่ถูกส่งต่อ</p>
+                <div class="knowledge-list">
+                  <span>ถ้าลูกค้าถามเรื่องส่งช้า ให้ขอโทษก่อน แล้วค่อยแจ้ง tracking</span>
+                  <span>ถ้าสินค้าหมด ให้แนะนำรุ่นใกล้เคียงพร้อมคูปอง</span>
+                  <span>ถ้าลูกค้าขอ refund จาก Shopee ให้ส่งขั้นตอนตาม policy marketplace</span>
+                  <span>ถ้าลูกค้าบ่นซ้ำเกิน 2 ครั้ง ให้ escalate ให้หัวหน้าทีม</span>
+                </div>
+              </article>
+            </div>
+          </div>
+        </section>
+
+        <section class="section white" id="features">
+          <div class="wrap">
+            <div class="section-head">
+              <div>
+                <p class="section-kicker">Product Capabilities</p>
+                <h2>ฟีเจอร์หลักที่ทำให้ CRMOS360 เป็นมากกว่าระบบแชท</h2>
+              </div>
+              <p class="section-copy">
+                ครอบคลุมทั้งงานตอบลูกค้า งานหลังบ้าน งานขาย และการปรับปรุงระบบ automation เพื่อให้ทีม customer operations ทำงานได้เร็วขึ้นและสม่ำเสมอขึ้น
+              </p>
+            </div>
+
+            <div class="feature-grid">
+              <article class="feature-card">
+                <div class="feature-icon">01</div>
+                <h3>Unified Commerce Inbox</h3>
+                <p>รวมข้อความจาก LINE OA, TikTok Shop, Shopee, Lazada, Facebook, Instagram และ Email พร้อม filter, search, unread tracking, assignment และ tags</p>
+              </article>
+              <article class="feature-card">
+                <div class="feature-icon">02</div>
+                <h3>AI Customer Memory</h3>
+                <p>จดจำประวัติลูกค้า ความสนใจ sentiment notes tags ปัญหาเดิม และข้อมูลสำคัญจากทุกบทสนทนา</p>
+              </article>
+              <article class="feature-card">
+                <div class="feature-icon">03</div>
+                <h3>AI Reply & Auto Reply</h3>
+                <p>ให้ AI ตอบเองในเคสที่มั่นใจ ร่างคำตอบในเคสสำคัญ และส่งต่อทีมเมื่อมีความเสี่ยง</p>
+              </article>
+              <article class="feature-card">
+                <div class="feature-icon">04</div>
+                <h3>Order & Workflow Actions</h3>
+                <p>เชื่อม conversation กับ action เช่น เช็กออเดอร์ สร้าง ticket ส่งคูปอง เรียก API หรือแจ้งทีมภายใน</p>
+              </article>
+              <article class="feature-card">
+                <div class="feature-icon">05</div>
+                <h3>Growth Suggestions</h3>
+                <p>แนะนำสินค้า โปรโมชั่น follow-up upsell cross-sell และ content ที่ควรปรับปรุงจากคำถามของลูกค้า</p>
+              </article>
+              <article class="feature-card">
+                <div class="feature-icon">06</div>
+                <h3>Intelligence Dashboard</h3>
+                <p>มองเห็นคำถามซ้ำ ปัญหาที่เกิดบ่อย sentiment trend เคสที่ควรปรับปรุง และ workflow ที่ควรสร้างเพิ่ม</p>
+              </article>
+            </div>
+          </div>
+        </section>
+
+        <section class="section">
+          <div class="wrap">
+            <div class="outcome-band">
+              <div>
+                <p class="section-kicker">Business Outcomes</p>
+                <h2>ให้ทุกแชทกลายเป็นข้อมูล ทุกข้อมูลกลายเป็น action และทุก action ทำให้ระบบฉลาดขึ้น</h2>
+              </div>
+              <div class="metrics">
+                <article class="metric">
+                  <strong>เร็วขึ้น</strong>
+                  <span>ลดเวลาตอบคำถามซ้ำและทำให้ทีมดูแลลูกค้าได้มากขึ้นโดยไม่เพิ่มคนตามจำนวนแชทเสมอไป</span>
+                </article>
+                <article class="metric">
+                  <strong>แม่นขึ้น</strong>
+                  <span>ตอบจาก customer memory, knowledge base และ policy ของธุรกิจ ไม่ใช่ template ทั่วไป</span>
+                </article>
+                <article class="metric">
+                  <strong>คุมได้</strong>
+                  <span>เลือกได้ว่าเคสไหนให้ AI ตอบเอง เคสไหนต้องรออนุมัติ และเคสไหนต้องส่งต่อคน</span>
+                </article>
+                <article class="metric">
+                  <strong>โตได้</strong>
+                  <span>ต่อยอดสู่ commerce intelligence ด้าน demand, inventory, pricing, logistics และ supply chain เมื่อเชื่อมข้อมูลครบ</span>
+                </article>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="cta-section" id="contact">
+          <div class="cta-inner">
+            <p class="section-kicker">CRMOS360</p>
+            <h2>เริ่มสร้าง AI OS สำหรับ Customer Operations ของธุรกิจคุณ</h2>
+            <p>
+              รวมแชทจาก LINE OA, TikTok Shop, Shopee, Lazada, Facebook, Instagram และช่องทางอื่น พร้อม AI Agents ที่ช่วยตอบ จำ ทำงาน แนะนำการตั้งค่า และเรียนรู้จากการใช้งานจริง
+            </p>
+            <div class="cta-actions">
+              <a class="button primary" href="mailto:hello@crmos360.com">ขอดูเดโม CRMOS360</a>
+              <a class="button secondary" href="#top">กลับไปดูหน้าแรก</a>
+            </div>
+          </div>
+        </section>
+      </main>
+
+      <footer class="footer">
+        <div class="footer-inner">
+          <div><strong>CRMOS360</strong> · AI OS for Customer Operations</div>
+          <div>Demo homepage · Single-file HTML prototype</div>
+        </div>
+      </footer>
+    </div>
+
+    <script>
+      const agents = {
+        service: {
+          title: "Customer Service Agent",
+          subtitle: "AI ตัวหลักสำหรับดูแลลูกค้าทุกช่องทาง",
+          state: "Main Character",
+          heading: "ตอบลูกค้าเร็วขึ้น โดยยังรักษาคุณภาพและบริบทของแบรนด์",
+          description:
+            "Customer Service Agent ช่วยตอบคำถาม แนะนำคำตอบ สรุปบทสนทนา วิเคราะห์ intent ตรวจจับ sentiment แปลภาษา จดจำบริบทลูกค้า และแจ้งเตือนเมื่อควรส่งต่อให้มนุษย์",
+          capabilities: [
+            ["Auto Reply", "ตอบคำถามที่ปลอดภัยและเกิดซ้ำได้ทันที"],
+            ["Approval Draft", "ร่างคำตอบให้ทีมตรวจในเคสสำคัญ"],
+            ["Customer Memory", "จำประวัติ ความสนใจ และปัญหาเดิม"],
+            ["Sentiment & Intent", "รู้ว่าลูกค้ากำลังถามอะไรและรู้สึกอย่างไร"],
+          ],
+          mini: [
+            ["เหมาะกับ", "LINE OA, TikTok Shop, Shopee, Lazada, Facebook, Instagram และ Email"],
+            ["ตัวอย่างเคส", "ถามสินค้า โปรโมชั่น ค่าจัดส่ง วิธีชำระเงิน และ complaint เบื้องต้น"],
+            ["ผลลัพธ์", "ลดเวลาตอบซ้ำ ทำให้ agent ใหม่ตอบได้เหมือนคนมีประสบการณ์"],
+          ],
+        },
+        ops: {
+          title: "Operations Agent",
+          subtitle: "AI ที่เปลี่ยนข้อความลูกค้าให้กลายเป็นงานหลังบ้าน",
+          state: "Action Engine",
+          heading: "จากคำถามลูกค้าไปสู่ออเดอร์ ticket API และ workflow",
+          description:
+            "Operations Agent ช่วยตรวจสอบข้อมูล สร้าง ticket assign งาน เรียก API ส่ง webhook แจ้งทีมภายใน หรือ trigger workflow เมื่อลูกค้าถามเรื่องออเดอร์ การจัดส่ง refund return คูปอง หรือปัญหาหลังการขาย",
+          capabilities: [
+            ["Order Lookup", "ตรวจสอบสถานะออเดอร์และเลข tracking"],
+            ["Workflow Trigger", "สร้าง ticket, assign งาน และแจ้งทีม"],
+            ["API & Webhook", "เชื่อมต่อระบบหลังบ้านและ marketplace"],
+            ["Return & Refund", "จัดการขั้นตอนคืนสินค้าและ complaint"],
+          ],
+          mini: [
+            ["เหมาะกับ", "ทีม support, operation, warehouse และผู้จัดการร้านค้า"],
+            ["ตัวอย่างเคส", "เช็กพัสดุ ขอคืนสินค้า ส่งคูปอง เปลี่ยนที่อยู่ หรือแจ้งปัญหาจัดส่ง"],
+            ["ผลลัพธ์", "AI ไม่ได้แค่ตอบ แต่ช่วยทำงานต่อจากบทสนทนาได้จริง"],
+          ],
+        },
+        growth: {
+          title: "Growth Agent",
+          subtitle: "AI ที่เปลี่ยนบทสนทนาให้เป็นโอกาสทางรายได้",
+          state: "Revenue Intelligence",
+          heading: "หาโอกาสขายจากคำถาม ความสนใจ และพฤติกรรมลูกค้า",
+          description:
+            "Growth Agent วิเคราะห์ความสนใจ คำถามซ้ำ พฤติกรรมลูกค้า และข้อมูลจาก marketplace เพื่อแนะนำสินค้า โปรโมชั่น upsell cross-sell follow-up และ content ที่ควรปรับปรุง",
+          capabilities: [
+            ["Product Recommendation", "แนะนำสินค้าที่เหมาะกับบริบทลูกค้า"],
+            ["Promotion Suggestion", "เสนอคูปองหรือโปรโมชันที่มีโอกาสปิดการขาย"],
+            ["Follow-up Signal", "ตรวจจับลูกค้าที่สนใจแต่ยังไม่ซื้อ"],
+            ["Content Insight", "แนะนำ FAQ และ product content ที่ควรเพิ่ม"],
+          ],
+          mini: [
+            ["เหมาะกับ", "ecommerce, social commerce, marketplace seller และ brand team"],
+            ["ตัวอย่างเคส", "ลูกค้าถามสินค้าซ้ำ เปรียบเทียบรุ่น สนใจแต่ยังไม่จ่าย หรือถามโปรโมชัน"],
+            ["ผลลัพธ์", "ทำให้แชทลูกค้าเป็นแหล่ง insight สำหรับ sales และ marketing"],
+          ],
+        },
+      };
+
+      const tabs = document.querySelectorAll(".agent-tab");
+      const title = document.getElementById("agent-title");
+      const subtitle = document.getElementById("agent-subtitle");
+      const state = document.getElementById("agent-state");
+      const heading = document.getElementById("agent-heading");
+      const description = document.getElementById("agent-description");
+      const capabilities = document.getElementById("agent-capabilities");
+      const mini = document.getElementById("agent-mini");
+
+      function renderAgent(key) {
+        const agent = agents[key];
+        title.textContent = agent.title;
+        subtitle.textContent = agent.subtitle;
+        state.textContent = agent.state;
+        heading.textContent = agent.heading;
+        description.textContent = agent.description;
+
+        capabilities.innerHTML = agent.capabilities
+          .map(
+            ([name, copy]) =>
+              `<div class="capability"><strong>${name}</strong><span>${copy}</span></div>`,
+          )
+          .join("");
+
+        mini.innerHTML = agent.mini
+          .map(
+            ([name, copy]) =>
+              `<div class="mini-item"><strong>${name}</strong><span>${copy}</span></div>`,
+          )
+          .join("");
+      }
+
+      tabs.forEach((tab) => {
+        tab.addEventListener("click", () => {
+          tabs.forEach((item) => item.setAttribute("aria-selected", "false"));
+          tab.setAttribute("aria-selected", "true");
+          renderAgent(tab.dataset.agent);
+        });
+      });
+    </script>
+  </body>
+</html>
