@@ -25,6 +25,41 @@ export default async function DashboardPage() {
         </p>
       </div>
 
+      {(!stats.onboarding.integrationConnected ||
+        stats.onboarding.knowledgeArticles === 0) && (
+        <Card className="border-warm/30 bg-warm-soft/40">
+          <CardHeader>
+            <CardTitle className="text-base">Get FlowAIOS ready</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ul className="space-y-2 text-sm">
+              <ChecklistItem
+                done={stats.onboarding.integrationConnected}
+                href="/admin/integrations"
+                label="Connect a channel (LINE OA)"
+              />
+              <ChecklistItem
+                done={stats.onboarding.knowledgeArticles > 0}
+                href="/admin/knowledge"
+                label="Add at least one knowledge article"
+                count={stats.onboarding.knowledgeArticles}
+              />
+              <ChecklistItem
+                done={stats.onboarding.teamMembers > 1}
+                href="/admin/team"
+                label="Invite a teammate"
+                count={stats.onboarding.teamMembers}
+              />
+              <ChecklistItem
+                done={stats.onboarding.firstConversation}
+                href="/inbox"
+                label="Receive first conversation"
+              />
+            </ul>
+          </CardContent>
+        </Card>
+      )}
+
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
         <Kpi label="Conversations (24h)" value={stats.conversations24h} />
         <Kpi label="Inbound messages" value={stats.inboundMessages24h} />
@@ -135,6 +170,47 @@ export default async function DashboardPage() {
         </CardContent>
       </Card>
     </main>
+  );
+}
+
+function ChecklistItem({
+  done,
+  href,
+  label,
+  count,
+}: {
+  done: boolean;
+  href: string;
+  label: string;
+  count?: number;
+}) {
+  return (
+    <li>
+      <Link
+        href={href}
+        className="flex items-center justify-between gap-3 rounded-md px-2 py-1.5 hover:bg-warm-soft"
+      >
+        <div className="flex items-center gap-3">
+          <span
+            className={`flex h-5 w-5 items-center justify-center rounded-full border-2 ${
+              done
+                ? 'border-mint bg-mint text-paper'
+                : 'border-hairline-2 bg-paper'
+            }`}
+          >
+            {done && <span className="text-[11px]">✓</span>}
+          </span>
+          <span className={done ? 'text-muted-foreground line-through' : ''}>
+            {label}
+          </span>
+        </div>
+        {count !== undefined && (
+          <span className="font-mono text-xs text-muted-foreground">
+            {count}
+          </span>
+        )}
+      </Link>
+    </li>
   );
 }
 

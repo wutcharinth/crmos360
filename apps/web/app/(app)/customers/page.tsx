@@ -35,14 +35,17 @@ export default async function CustomersPage({
 
   return (
     <main className="mx-auto max-w-6xl space-y-6 p-8">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-semibold">Customers</h1>
           <p className="mt-1 text-sm text-muted-foreground">
             {customers?.length ?? 0} customer{customers?.length === 1 ? '' : 's'}
           </p>
         </div>
-        <CustomerSearch initialQuery={search} />
+        <div className="flex items-center gap-2">
+          <CustomerSearch initialQuery={search} />
+          <ExportCsvLink />
+        </div>
       </div>
 
       <Card>
@@ -97,5 +100,18 @@ export default async function CustomersPage({
         </CardContent>
       </Card>
     </main>
+  );
+}
+
+function ExportCsvLink() {
+  return (
+    // eslint-disable-next-line @next/next/no-html-link-for-pages
+    <a
+      href="/api/customers/export"
+      download
+      className="rounded-md border bg-background px-3 py-1.5 text-sm hover:bg-accent"
+    >
+      Export CSV
+    </a>
   );
 }

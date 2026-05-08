@@ -19,6 +19,12 @@ export interface DashboardStats {
     conversationId: string;
   }[];
   hourlyVolume: { hour: string; inbound: number; outbound: number }[];
+  onboarding: {
+    integrationConnected: boolean;
+    knowledgeArticles: number;
+    teamMembers: number;
+    firstConversation: boolean;
+  };
 }
 
 const DAY_MS = 24 * 60 * 60 * 1000;
@@ -35,6 +41,10 @@ export async function getDashboardStats(orgId: string): Promise<DashboardStats> 
     { count: openConversations },
     { data: channelRows },
     { data: recentMessages },
+    { count: integrationCount },
+    { count: kbCount },
+    { count: memberCount },
+    { count: convoEverCount },
   ] = await Promise.all([
     admin
       .from('conversations')
@@ -67,6 +77,24 @@ export async function getDashboardStats(orgId: string): Promise<DashboardStats> 
       .eq('org_id', orgId)
       .order('sent_at', { ascending: false })
       .limit(15),
+    admin
+      .from('integrations')
+      .select('id', { count: 'exact', head: true })
+      .eq('org_id', orgId)
+      .eq('status', 'active'),
+    admin
+      .from('knowledge_articles')
+      .select('id', { count: 'exact', head: true })
+      .eq('org_id', orgId)
+      .eq('archived', false),
+    admin
+      .from('org_members')
+      .select('user_id', { count: 'exact', head: true })
+      .eq('org_id', orgId),
+    admin
+      .from('conversations')
+      .select('id', { count: 'exact', head: true })
+      .eq('org_id', orgId),
   ]);
 
   const inbound = (messages24h ?? []).filter((m) => m.direction === 'inbound');
@@ -118,5 +146,11 @@ export async function getDashboardStats(orgId: string): Promise<DashboardStats> 
     channelBreakdown: [...channelMap.entries()].map(([channel, count]) => ({ channel, count })),
     recentActivity,
     hourlyVolume: [...hours.entries()].map(([hour, v]) => ({ hour, ...v })),
+    onboarding: {
+      integrationConnected: (integrationCount ?? 0) > 0,
+      knowledgeArticles: kbCount ?? 0,
+      teamMembers: memberCount ?? 0,
+      firstConversation: (convoEverCount ?? 0) > 0,
+    },
   };
 }
