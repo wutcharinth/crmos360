@@ -4,6 +4,7 @@ import { requireMembership } from '@/lib/auth/current-user';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { ChannelBadge } from '@/components/app/channel-badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { CustomerActions } from './customer-actions';
 
 export const dynamic = 'force-dynamic';
 
@@ -95,6 +96,19 @@ export default async function CustomerDetailPage({
           <p className="text-xs text-muted-foreground">in / out msgs</p>
         </div>
       </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">Edit profile</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <CustomerActions
+            customerId={customer.id as string}
+            initialName={customer.name ?? ''}
+            initialTags={(customer.tags ?? []) as string[]}
+          />
+        </CardContent>
+      </Card>
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         <Card>

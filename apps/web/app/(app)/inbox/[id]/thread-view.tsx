@@ -25,6 +25,7 @@ export function ThreadView({ conversationId, autoReplyEnabled, status, messages 
   const [currentStatus, setCurrentStatus] = useState(status);
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
+  const [suggesting, setSuggesting] = useState(false);
   const router = useRouter();
   const endRef = useRef<HTMLDivElement>(null);
 
@@ -72,6 +73,26 @@ export function ThreadView({ conversationId, autoReplyEnabled, status, messages 
       router.refresh();
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Failed');
+    }
+  }
+
+  async function suggest() {
+    if (suggesting) return;
+    setSuggesting(true);
+    setError(null);
+    try {
+      const res = await fetch(`/api/conversations/${conversationId}/suggest`, {
+        method: 'POST',
+      });
+      const data = (await res.json()) as { text?: string; error?: string; message?: string };
+      if (!res.ok) {
+        throw new Error(data.message ?? data.error ?? `${res.status}`);
+      }
+      if (data.text) setDraft(data.text);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Suggestion failed');
+    } finally {
+      setSuggesting(false);
     }
   }
 
@@ -163,9 +184,21 @@ export function ThreadView({ conversationId, autoReplyEnabled, status, messages 
             rows={2}
             className="flex-1 resize-none rounded-md border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-warm/30"
           />
-          <Button onClick={send} disabled={pending || !draft.trim()}>
-            {pending ? 'Sending…' : 'Send'}
-          </Button>
+          <div className="flex flex-col gap-1.5">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={suggest}
+              disabled={suggesting}
+              title="Generate AI suggestion"
+            >
+              {suggesting ? '…' : '✨ AI'}
+            </Button>
+            <Button onClick={send} disabled={pending || !draft.trim()} size="sm">
+              {pending ? 'Sending…' : 'Send'}
+            </Button>
+          </div>
         </div>
       </div>
     </div>

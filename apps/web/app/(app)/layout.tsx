@@ -15,6 +15,7 @@ const adminLinks = [
   { href: '/admin', label: 'Overview' },
   { href: '/admin/team', label: 'Team' },
   { href: '/admin/integrations', label: 'Integrations' },
+  { href: '/admin/ai-logs', label: 'AI Logs' },
   { href: '/admin/audit', label: 'Audit' },
   { href: '/admin/settings', label: 'Settings' },
 ];

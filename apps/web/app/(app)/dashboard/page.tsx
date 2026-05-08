@@ -3,6 +3,7 @@ import { requireMembership } from '@/lib/auth/current-user';
 import { getDashboardStats } from '@/lib/dashboard/queries';
 import { ChannelBadge } from '@/components/app/channel-badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { greetingForHour } from '@/lib/util/format-time';
 import { HourlyChart } from './hourly-chart';
 
 export const dynamic = 'force-dynamic';
@@ -147,14 +148,6 @@ function Kpi({ label, value, sub }: { label: string; value: number; sub?: string
       {sub && <p className="mt-1 text-xs text-muted-foreground">{sub}</p>}
     </div>
   );
-}
-
-function greetingForHour(h: number): string {
-  if (h < 5) return 'Working late';
-  if (h < 12) return 'Good morning';
-  if (h < 17) return 'Good afternoon';
-  if (h < 21) return 'Good evening';
-  return 'Working late';
 }
 
 function firstName(email: string): string {
