@@ -1,3 +1,11 @@
+// RLS policies below call `public.is_org_member(uuid)` and
+// `public.is_org_admin(uuid)` — SECURITY DEFINER helpers defined in
+// `supabase/migrations/20260508144917_fix_rls_recursion.sql`. They bypass
+// RLS internally, breaking the recursion that bit us at first deploy
+// (Postgres 42P17 — the org_members SELECT policy referenced org_members
+// itself, so any join through it looped forever). Don't reintroduce inline
+// `exists (select 1 from org_members ...)` in policies; use the helpers.
+
 import { sql } from 'drizzle-orm';
 import {
   boolean,
@@ -88,13 +96,13 @@ export const organizations = pgTable(
     pgPolicy('organizations_select_member', {
       for: 'select',
       to: 'authenticated',
-      using: sql`exists (select 1 from public.org_members m where m.org_id = ${t.id} and m.user_id = (select auth.uid()))`,
+      using: sql`public.is_org_member(${t.id})`,
     }),
     pgPolicy('organizations_update_admin', {
       for: 'update',
       to: 'authenticated',
-      using: sql`exists (select 1 from public.org_members m where m.org_id = ${t.id} and m.user_id = (select auth.uid()) and m.role in ('owner','admin'))`,
-      withCheck: sql`exists (select 1 from public.org_members m where m.org_id = ${t.id} and m.user_id = (select auth.uid()) and m.role in ('owner','admin'))`,
+      using: sql`public.is_org_admin(${t.id})`,
+      withCheck: sql`public.is_org_admin(${t.id})`,
     }),
     pgPolicy('organizations_insert_self', {
       for: 'insert',
@@ -121,16 +129,18 @@ export const orgMembers = pgTable(
   (t) => [
     primaryKey({ columns: [t.orgId, t.userId] }),
     index('org_members_user_idx').on(t.userId),
-    pgPolicy('org_members_select_self_or_org', {
+    // SELECT: only own membership rows. Admin views of other members go through
+    // the service-role admin client (see apps/web/app/(app)/admin/team/page.tsx).
+    pgPolicy('org_members_select_self', {
       for: 'select',
       to: 'authenticated',
-      using: sql`${t.userId} = (select auth.uid()) or exists (select 1 from public.org_members m2 where m2.org_id = ${t.orgId} and m2.user_id = (select auth.uid()))`,
+      using: sql`${t.userId} = (select auth.uid())`,
     }),
     pgPolicy('org_members_modify_admin', {
       for: 'all',
       to: 'authenticated',
-      using: sql`exists (select 1 from public.org_members m2 where m2.org_id = ${t.orgId} and m2.user_id = (select auth.uid()) and m2.role in ('owner','admin'))`,
-      withCheck: sql`exists (select 1 from public.org_members m2 where m2.org_id = ${t.orgId} and m2.user_id = (select auth.uid()) and m2.role in ('owner','admin'))`,
+      using: sql`public.is_org_admin(${t.orgId})`,
+      withCheck: sql`public.is_org_admin(${t.orgId})`,
     }),
   ],
 ).enableRLS();
@@ -157,8 +167,8 @@ export const orgInvites = pgTable(
     pgPolicy('org_invites_admin_all', {
       for: 'all',
       to: 'authenticated',
-      using: sql`exists (select 1 from public.org_members m where m.org_id = ${t.orgId} and m.user_id = (select auth.uid()) and m.role in ('owner','admin'))`,
-      withCheck: sql`exists (select 1 from public.org_members m where m.org_id = ${t.orgId} and m.user_id = (select auth.uid()) and m.role in ('owner','admin'))`,
+      using: sql`public.is_org_admin(${t.orgId})`,
+      withCheck: sql`public.is_org_admin(${t.orgId})`,
     }),
   ],
 ).enableRLS();
@@ -185,8 +195,8 @@ export const customers = pgTable(
     pgPolicy('customers_org_member_all', {
       for: 'all',
       to: 'authenticated',
-      using: sql`exists (select 1 from public.org_members m where m.org_id = ${t.orgId} and m.user_id = (select auth.uid()))`,
-      withCheck: sql`exists (select 1 from public.org_members m where m.org_id = ${t.orgId} and m.user_id = (select auth.uid()))`,
+      using: sql`public.is_org_member(${t.orgId})`,
+      withCheck: sql`public.is_org_member(${t.orgId})`,
     }),
   ],
 ).enableRLS();
@@ -218,8 +228,8 @@ export const conversations = pgTable(
     pgPolicy('conversations_org_member_all', {
       for: 'all',
       to: 'authenticated',
-      using: sql`exists (select 1 from public.org_members m where m.org_id = ${t.orgId} and m.user_id = (select auth.uid()))`,
-      withCheck: sql`exists (select 1 from public.org_members m where m.org_id = ${t.orgId} and m.user_id = (select auth.uid()))`,
+      using: sql`public.is_org_member(${t.orgId})`,
+      withCheck: sql`public.is_org_member(${t.orgId})`,
     }),
   ],
 ).enableRLS();
@@ -249,8 +259,8 @@ export const messages = pgTable(
     pgPolicy('messages_org_member_all', {
       for: 'all',
       to: 'authenticated',
-      using: sql`exists (select 1 from public.org_members m where m.org_id = ${t.orgId} and m.user_id = (select auth.uid()))`,
-      withCheck: sql`exists (select 1 from public.org_members m where m.org_id = ${t.orgId} and m.user_id = (select auth.uid()))`,
+      using: sql`public.is_org_member(${t.orgId})`,
+      withCheck: sql`public.is_org_member(${t.orgId})`,
     }),
   ],
 ).enableRLS();
@@ -280,8 +290,8 @@ export const customerMemory = pgTable(
     pgPolicy('customer_memory_org_member_all', {
       for: 'all',
       to: 'authenticated',
-      using: sql`exists (select 1 from public.org_members m where m.org_id = ${t.orgId} and m.user_id = (select auth.uid()))`,
-      withCheck: sql`exists (select 1 from public.org_members m where m.org_id = ${t.orgId} and m.user_id = (select auth.uid()))`,
+      using: sql`public.is_org_member(${t.orgId})`,
+      withCheck: sql`public.is_org_member(${t.orgId})`,
     }),
   ],
 ).enableRLS();
@@ -306,8 +316,8 @@ export const integrations = pgTable(
     pgPolicy('integrations_admin_all', {
       for: 'all',
       to: 'authenticated',
-      using: sql`exists (select 1 from public.org_members m where m.org_id = ${t.orgId} and m.user_id = (select auth.uid()) and m.role in ('owner','admin'))`,
-      withCheck: sql`exists (select 1 from public.org_members m where m.org_id = ${t.orgId} and m.user_id = (select auth.uid()) and m.role in ('owner','admin'))`,
+      using: sql`public.is_org_admin(${t.orgId})`,
+      withCheck: sql`public.is_org_admin(${t.orgId})`,
     }),
   ],
 ).enableRLS();
@@ -338,7 +348,7 @@ export const aiLogs = pgTable(
     pgPolicy('ai_logs_org_member_select', {
       for: 'select',
       to: 'authenticated',
-      using: sql`exists (select 1 from public.org_members m where m.org_id = ${t.orgId} and m.user_id = (select auth.uid()))`,
+      using: sql`public.is_org_member(${t.orgId})`,
     }),
   ],
 ).enableRLS();
