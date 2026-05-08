@@ -1,0 +1,22 @@
+{
+  "name": "@crmos360/ai",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "scripts": {
+    "lint": "echo 'no lint'",
+    "typecheck": "tsc --noEmit",
+    "test": "echo 'no tests yet'"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.95.0",
+    "@crmos360/shared": "workspace:*",
+    "@google/generative-ai": "^0.21.0",
+    "zod": "^3.24.1"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.2"
+  }
+}

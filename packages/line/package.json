@@ -1,0 +1,20 @@
+{
+  "name": "@crmos360/line",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "scripts": {
+    "lint": "echo 'no lint'",
+    "typecheck": "tsc --noEmit",
+    "test": "echo 'no tests yet'"
+  },
+  "dependencies": {
+    "@crmos360/shared": "workspace:*",
+    "@line/bot-sdk": "^9.7.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.2"
+  }
+}

@@ -1,0 +1,40 @@
+# deps
+node_modules
+.pnpm-store
+
+# build
+dist
+.next
+.turbo
+out
+build
+*.tsbuildinfo
+
+# env
+.env
+.env.local
+.env.*.local
+!.env.example
+
+# editor
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+.idea
+.DS_Store
+
+# logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# test
+coverage
+.nyc_output
+
+# supabase
+supabase/.branches
+supabase/.temp
+supabase/.env
