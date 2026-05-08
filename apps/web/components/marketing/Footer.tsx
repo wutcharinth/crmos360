@@ -11,7 +11,7 @@ export function Footer() {
             360
           </span>
           <div className="text-[13px] text-mute">
-            <b className="font-medium text-ink">CRMOS360</b>
+            <b className="font-medium text-ink">FlowAIOS</b>
             <span className="mx-2 text-hairline-2">·</span>
             AI OS for Customer Operations
           </div>

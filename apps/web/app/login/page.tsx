@@ -14,7 +14,7 @@ export default async function LoginPage({
       <Card className="w-full max-w-md">
         <CardHeader>
           <CardTitle className="text-2xl">Sign in</CardTitle>
-          <CardDescription>Welcome back to CRMOS360.</CardDescription>
+          <CardDescription>Welcome back to FlowAIOS.</CardDescription>
         </CardHeader>
         <CardContent>
           <LoginForm next={search.next ?? '/inbox'} initialError={search.error ?? null} />

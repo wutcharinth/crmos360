@@ -38,3 +38,9 @@ coverage
 supabase/.branches
 supabase/.temp
 supabase/.env
+
+# vercel
+.vercel
+
+# claude code agent state and worktrees
+.claude/

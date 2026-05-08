@@ -14,7 +14,7 @@ export function AiOsPrinciples() {
             </h2>
           </div>
           <p className="lead">
-            CRMOS360 เชื่อมบทสนทนา ข้อมูลลูกค้า ออเดอร์ marketplace workflow ทีมงาน
+            FlowAIOS เชื่อมบทสนทนา ข้อมูลลูกค้า ออเดอร์ marketplace workflow ทีมงาน
             knowledge base และ AI automation เข้าด้วยกัน
             เพื่อเปลี่ยนทุกข้อความให้กลายเป็น action และ intelligence สำหรับธุรกิจ
           </p>

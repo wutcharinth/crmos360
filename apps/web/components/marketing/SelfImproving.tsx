@@ -14,7 +14,7 @@ export function SelfImproving() {
             </h2>
           </div>
           <p className="lead">
-            CRMOS360 ใช้ Knowledge Base เป็น source of truth และ Lesson System
+            FlowAIOS ใช้ Knowledge Base เป็น source of truth และ Lesson System
             เป็น playbook ที่พัฒนาจากการทำงานจริง ทุก lesson ต้องผ่านการอนุมัติของ
             manager เพื่อให้ automation ฉลาดขึ้นโดยไม่เสียการควบคุม
           </p>

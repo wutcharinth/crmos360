@@ -20,7 +20,7 @@ export function Backoffice() {
             </h2>
           </div>
           <p className="lead">
-            จุดต่างของ CRMOS360 คือ AI ไม่ได้ช่วยแค่หน้าบ้านในการตอบลูกค้า
+            จุดต่างของ FlowAIOS คือ AI ไม่ได้ช่วยแค่หน้าบ้านในการตอบลูกค้า
             แต่ช่วยจัดการหลังบ้าน ตั้งแต่ setup, knowledge base, workflow,
             auto-reply rules, escalation rules และ configuration recommendations
           </p>

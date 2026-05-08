@@ -8,7 +8,7 @@ export default function SignupPage() {
       <Card className="w-full max-w-md">
         <CardHeader>
           <CardTitle className="text-2xl">Create account</CardTitle>
-          <CardDescription>Start using CRMOS360.</CardDescription>
+          <CardDescription>Start using FlowAIOS.</CardDescription>
         </CardHeader>
         <CardContent>
           <SignupForm />

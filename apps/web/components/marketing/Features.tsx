@@ -8,7 +8,7 @@ export function Features() {
           <div>
             <span className="label-mono mb-4 inline-block text-warm">Product Capabilities</span>
             <h2 className="display-md text-ink">
-              ฟีเจอร์หลักที่ทำให้ CRMOS360
+              ฟีเจอร์หลักที่ทำให้ FlowAIOS
               <br />
               เป็นมากกว่าระบบแชท
             </h2>

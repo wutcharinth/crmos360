@@ -12,7 +12,7 @@ export function Cta() {
       />
       <div className="relative mx-auto w-[min(880px,calc(100%-48px))] text-center">
         <span className="label-mono inline-block !text-[hsl(var(--warm))] tracking-[0.32em]">
-          CRMOS360
+          FlowAIOS
         </span>
         <h2 className="mt-5 display-lg text-paper">
           เริ่มสร้าง AI OS สำหรับ Customer Operations
@@ -29,7 +29,7 @@ export function Cta() {
             href="/signup"
             className="rounded-lg bg-warm px-6 py-3.5 text-[14px] font-medium text-paper transition-all duration-200 hover:-translate-y-px hover:bg-warm-2 hover:shadow-cta"
           >
-            ขอดูเดโม CRMOS360
+            ขอดูเดโม FlowAIOS
           </Link>
           <Link
             href="#top"
