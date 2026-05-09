@@ -3,10 +3,13 @@ import { Nav } from '@/components/marketing/Nav';
 import { Footer } from '@/components/marketing/Footer';
 import { ScenePlayer } from '@/components/demo/ScenePlayer';
 import { Playground } from '@/components/demo/Playground';
-import { DEMO_BRAND } from '@/lib/demo/scenes';
+import { DEMO_BRAND, TOTAL_DURATION } from '@/lib/demo/scenes';
+
+const walkthroughSeconds = Math.round(TOTAL_DURATION / 1000);
+const walkthroughLabel = `${Math.floor(walkthroughSeconds / 60)}:${String(walkthroughSeconds % 60).padStart(2, '0')}`;
 
 export const metadata = {
-  title: 'Try FlowAIOS · 30-second walkthrough + interactive demo',
+  title: `Try FlowAIOS · ${walkthroughLabel} walkthrough + interactive demo`,
   description:
     'Watch a scripted walkthrough of FlowAIOS handling 5 real customer-ops scenarios, then chat with the AI yourself. No signup required.',
 };
@@ -28,8 +31,8 @@ export default function DemoPage() {
               ลอง FlowAIOS กับ <em className="not-italic font-semibold text-warm">{DEMO_BRAND.name}</em>
             </h1>
             <p className="lead mt-5 max-w-[58ch]">
-              {DEMO_BRAND.tagline}. {DEMO_BRAND.team}. Watch the 30-second walkthrough, then
-              chat with the AI yourself. Every transcript below uses scripted facts of a
+              {DEMO_BRAND.tagline}. {DEMO_BRAND.team}. Watch the {walkthroughLabel} walkthrough,
+              then chat with the AI yourself. Every transcript below uses scripted facts of a
               made-up brand, no live customer data.
             </p>
             <div className="mt-7 flex flex-wrap items-center gap-x-6 gap-y-3">
@@ -46,7 +49,7 @@ export default function DemoPage() {
                 Skip to playground
               </Link>
               <span className="font-mono text-[10px] uppercase tracking-widest text-mute">
-                30s scripted · 6 turns interactive · no signup
+                {walkthroughLabel} scripted · 6 turns interactive · no signup
               </span>
             </div>
           </div>

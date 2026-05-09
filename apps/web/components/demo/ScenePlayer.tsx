@@ -29,9 +29,16 @@ const channelChromeClass: Record<SceneChannel, string> = {
 
 const tierClass: Record<'auto' | 'approval' | 'escalate', string> = {
   auto: 'text-mint',
-  approval: 'text-warm',
+  approval: 'text-amber',
   escalate: 'text-rose',
 };
+
+function formatDuration(ms: number): string {
+  const total = Math.round(ms / 1000);
+  const m = Math.floor(total / 60);
+  const s = total % 60;
+  return `${m}:${String(s).padStart(2, '0')}`;
+}
 
 interface PlayerState {
   sceneIndex: number;
@@ -111,7 +118,7 @@ export function ScenePlayer() {
       {/* Scene rail */}
       <aside>
         <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-mute">
-          Scenes · 0:30 walkthrough
+          Scenes · {formatDuration(TOTAL_DURATION)} walkthrough
         </p>
         <ol className="mt-4 space-y-1.5">
           {SCENES.map((s, i) => {
