@@ -30,6 +30,8 @@ const adminLinks = [
   { href: '/admin', label: 'Overview' },
   { href: '/admin/team', label: 'Team' },
   { href: '/admin/integrations', label: 'Integrations' },
+  { href: '/admin/knowledge', label: 'Knowledge' },
+  { href: '/admin/ai-logs', label: 'AI Logs' },
   { href: '/admin/audit', label: 'Audit' },
   { href: '/admin/flags', label: 'Flags' },
 ];
@@ -83,24 +85,24 @@ export default async function AppLayout({ children }: { children: React.ReactNod
             <UserMenu email={user.email ?? ''} role={role} />
           </div>
         </div>
-        <nav className="flex items-center gap-1 px-6 pb-1.5 text-sm">
+        <nav className="-mb-px flex items-center gap-1 overflow-x-auto px-6 pb-1.5 text-sm scrollbar-thin">
           {mainLinks.map((l) => (
             <Link
               key={l.href}
               href={l.href}
-              className="rounded-md px-3 py-1.5 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+              className="flex-shrink-0 rounded-md px-3 py-1.5 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
             >
               {l.label}
             </Link>
           ))}
           {isAdmin && (
             <>
-              <span className="mx-2 h-4 w-px bg-border" />
+              <span className="mx-2 h-4 w-px flex-shrink-0 bg-border" />
               {adminLinks.map((l) => (
                 <Link
                   key={l.href}
                   href={l.href}
-                  className="rounded-md px-3 py-1.5 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+                  className="flex-shrink-0 rounded-md px-3 py-1.5 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
                 >
                   {l.label}
                 </Link>

@@ -463,6 +463,42 @@ export const lessons = pgTable(
   ],
 ).enableRLS();
 
+// --- knowledge_articles --- (from main: KB-augmented AI replies)
+// Curated KB content per org, embedded for retrieval; injected into the
+// auto-reply prompt by `lib/ai/knowledge.ts`.
+
+export const knowledgeArticles = pgTable(
+  'knowledge_articles',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    orgId: uuid('org_id')
+      .notNull()
+      .references(() => organizations.id, { onDelete: 'cascade' }),
+    title: text('title').notNull(),
+    body: text('body').notNull(),
+    category: text('category'),
+    embedding: vector('embedding', { dimensions: 768 }),
+    archived: boolean('archived').notNull().default(false),
+    createdBy: uuid('created_by').references(() => authUsers.id, { onDelete: 'set null' }),
+    createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+  },
+  (t) => [
+    index('knowledge_articles_org_idx').on(t.orgId, t.archived),
+    pgPolicy('knowledge_articles_select', {
+      for: 'select',
+      to: 'authenticated',
+      using: sql`public.is_org_member(${t.orgId})`,
+    }),
+    pgPolicy('knowledge_articles_admin_write', {
+      for: 'all',
+      to: 'authenticated',
+      using: sql`public.is_org_admin(${t.orgId})`,
+      withCheck: sql`public.is_org_admin(${t.orgId})`,
+    }),
+  ],
+).enableRLS();
+
 export const lessonApplications = pgTable(
   'lesson_applications',
   {
@@ -580,3 +616,4 @@ export type LlmUsageEntry = typeof llmUsage.$inferSelect;
 export type NewLlmUsageEntry = typeof llmUsage.$inferInsert;
 export type UserPrefs = typeof userPrefs.$inferSelect;
 export type NewUserPrefs = typeof userPrefs.$inferInsert;
+export type KnowledgeArticle = typeof knowledgeArticles.$inferSelect;

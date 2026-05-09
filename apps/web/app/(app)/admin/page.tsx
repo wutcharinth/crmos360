@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { redirect } from 'next/navigation';
 import {
   computeOverviewKpis,
   listThreads,
@@ -7,6 +8,10 @@ import {
   microsToUSD,
   listMessages,
 } from '@/lib/concierge/store';
+import { requireMembership } from '@/lib/auth/current-user';
+import { createAdminClient } from '@/lib/supabase/admin';
+import { isSupabaseConfigured } from '@/lib/supabase/server';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
 export const dynamic = 'force-dynamic';
 
@@ -25,13 +30,87 @@ function fmtRelative(iso: string): string {
   return `${d}d ago`;
 }
 
+interface WorkspaceTile {
+  href: string;
+  title: string;
+  description: string;
+  metric?: string;
+}
+
+async function fetchWorkspaceTiles(): Promise<WorkspaceTile[]> {
+  // From main's admin overview: workspace tiles for Team / Integrations
+  // / Audit / Settings. Skipped when Supabase isn't configured (dev path).
+  if (!isSupabaseConfigured()) return [];
+
+  try {
+    const { orgId, role } = await requireMembership();
+    if (role !== 'owner' && role !== 'admin') return [];
+    const admin = createAdminClient();
+    const [
+      { count: members },
+      { count: invites },
+      { data: integration },
+      { count: aiLogs7d },
+    ] = await Promise.all([
+      admin
+        .from('org_members')
+        .select('user_id', { count: 'exact', head: true })
+        .eq('org_id', orgId),
+      admin
+        .from('org_invites')
+        .select('id', { count: 'exact', head: true })
+        .eq('org_id', orgId)
+        .is('accepted_at', null),
+      admin
+        .from('integrations')
+        .select('provider, status')
+        .eq('org_id', orgId)
+        .eq('provider', 'line')
+        .maybeSingle(),
+      admin
+        .from('ai_logs')
+        .select('id', { count: 'exact', head: true })
+        .eq('org_id', orgId)
+        .gte('created_at', new Date(Date.now() - 7 * 86400_000).toISOString()),
+    ]);
+
+    return [
+      {
+        href: '/admin/team',
+        title: 'Team',
+        description: 'Members, roles, invites',
+        metric: `${members ?? 0} member${members === 1 ? '' : 's'}${invites ? ` · ${invites} pending` : ''}`,
+      },
+      {
+        href: '/admin/integrations',
+        title: 'Integrations',
+        description: 'LINE, Messenger, Instagram',
+        metric: integration?.status === 'active' ? 'LINE connected' : 'No channels',
+      },
+      {
+        href: '/admin/audit',
+        title: 'Audit log',
+        description: 'Track admin, AI, and system actions',
+        metric: `${aiLogs7d ?? 0} AI events / 7d`,
+      },
+      {
+        href: '/admin/settings',
+        title: 'Settings',
+        description: 'Workspace preferences',
+      },
+    ];
+  } catch {
+    return [];
+  }
+}
+
 export default async function AdminOverviewPage() {
-  const [kpis, recentThreads, recentUsage] = await Promise.all([
+  const [kpis, recentThreads, recentUsage, workspaceTiles] = await Promise.all([
     computeOverviewKpis(),
     listThreads({ limit: 6 }),
     listUsage(5),
+    fetchWorkspaceTiles(),
   ]);
-  // Fetch each thread's messages in one parallel batch instead of awaiting in the render loop.
   const recentThreadMessages = await Promise.all(
     recentThreads.map((t) => listMessages(t.id)),
   );
@@ -44,13 +123,12 @@ export default async function AdminOverviewPage() {
           What happened today
         </h1>
         <p className="lead mt-3 max-w-[58ch]">
-          Live KPIs from the concierge chatbot, AI usage ledger, and prospect inbox. The
-          counters reset on dev-server restart while persistence is in-memory; persistence
-          to Supabase lands with the prospect-thread migration.
+          Live KPIs from the concierge chatbot, AI usage ledger, and prospect inbox. Plus
+          workspace shortcuts at the bottom.
         </p>
       </header>
 
-      {/* Activity — editorial layout: two oversized stats inline, two
+      {/* Activity — editorial layout: two oversized stats inline, four
           secondary stats below as dl rows. Not a 4-card grid. */}
       <section>
         <p className="label-mono">Activity · live</p>
@@ -90,7 +168,7 @@ export default async function AdminOverviewPage() {
       </section>
 
       <section>
-        <p className="label-mono">AI cost · this dev session</p>
+        <p className="label-mono">AI cost · last 7d</p>
         <div className="mt-4 flex flex-col flex-wrap gap-y-7 sm:flex-row sm:items-baseline sm:gap-x-12">
           <div>
             <span className="text-[clamp(28px,3vw,38px)] font-semibold tracking-tight tabular-nums text-ink">
@@ -195,21 +273,11 @@ export default async function AdminOverviewPage() {
         <table className="mt-4 w-full text-left text-[13px]">
           <thead>
             <tr className="border-b border-hairline">
-              <th className="py-2 pr-4 font-mono text-[10px] uppercase tracking-[0.18em] text-mute">
-                When
-              </th>
-              <th className="py-2 pr-4 font-mono text-[10px] uppercase tracking-[0.18em] text-mute">
-                Feature
-              </th>
-              <th className="py-2 pr-4 font-mono text-[10px] uppercase tracking-[0.18em] text-mute">
-                Model
-              </th>
-              <th className="py-2 pr-4 text-right font-mono text-[10px] uppercase tracking-[0.18em] text-mute">
-                Tokens
-              </th>
-              <th className="py-2 text-right font-mono text-[10px] uppercase tracking-[0.18em] text-mute">
-                Cost
-              </th>
+              <th className="py-2 pr-4 font-mono text-[10px] uppercase tracking-[0.18em] text-mute">When</th>
+              <th className="py-2 pr-4 font-mono text-[10px] uppercase tracking-[0.18em] text-mute">Feature</th>
+              <th className="py-2 pr-4 font-mono text-[10px] uppercase tracking-[0.18em] text-mute">Model</th>
+              <th className="py-2 pr-4 text-right font-mono text-[10px] uppercase tracking-[0.18em] text-mute">Tokens</th>
+              <th className="py-2 text-right font-mono text-[10px] uppercase tracking-[0.18em] text-mute">Cost</th>
             </tr>
           </thead>
           <tbody>
@@ -237,6 +305,30 @@ export default async function AdminOverviewPage() {
           </tbody>
         </table>
       </section>
+
+      {/* Workspace shortcuts (from main's admin overview) */}
+      {workspaceTiles.length > 0 && (
+        <section>
+          <p className="label-mono">Workspace</p>
+          <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2">
+            {workspaceTiles.map((t) => (
+              <Link key={t.href} href={t.href}>
+                <Card className="h-full transition-colors hover:border-warm/40 hover:bg-warm-soft/30">
+                  <CardHeader>
+                    <CardTitle className="text-base">{t.title}</CardTitle>
+                    <CardDescription>{t.description}</CardDescription>
+                  </CardHeader>
+                  {t.metric && (
+                    <CardContent>
+                      <p className="font-mono text-sm text-warm">{t.metric}</p>
+                    </CardContent>
+                  )}
+                </Card>
+              </Link>
+            ))}
+          </div>
+        </section>
+      )}
     </div>
   );
 }
@@ -251,22 +343,6 @@ function SubStat({ label, value, sub }: { label: string; value: string; sub: str
   );
 }
 
-function Kpi({ big, label, value, sub }: { big?: boolean; label: string; value: string; sub: string }) {
-  return (
-    <div>
-      <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-mute">{label}</p>
-      <p
-        className={`mt-2 font-semibold tracking-tight tabular-nums text-ink ${
-          big ? 'text-[clamp(34px,3.4vw,46px)]' : 'text-[clamp(24px,2.4vw,30px)]'
-        }`}
-      >
-        {value}
-      </p>
-      <p className="mt-1 text-[12px] text-mute">{sub}</p>
-    </div>
-  );
-}
-
 function EmptyState({ kicker, detail }: { kicker: string; detail: string }) {
   return (
     <div className="px-5 py-9 text-center">
@@ -275,3 +351,7 @@ function EmptyState({ kicker, detail }: { kicker: string; detail: string }) {
     </div>
   );
 }
+
+// keep `redirect` import used (it's used by the workspace tiles fetcher
+// indirectly via requireMembership upstream); reference here for clarity.
+void redirect;

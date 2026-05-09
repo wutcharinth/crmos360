@@ -8,13 +8,14 @@
   "scripts": {
     "lint": "echo 'no lint'",
     "typecheck": "tsc --noEmit",
-    "test": "echo 'no tests yet'"
+    "test": "vitest run --passWithNoTests"
   },
   "dependencies": {
     "@crmos360/shared": "workspace:*",
     "@line/bot-sdk": "^9.7.0"
   },
   "devDependencies": {
-    "typescript": "^5.7.2"
+    "typescript": "^5.7.2",
+    "vitest": "^2.1.8"
   }
 }

@@ -4,6 +4,7 @@ import { sendPush, sendReply } from '@crmos360/line';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { extractAndStoreMemory } from './memory';
 import { applyRules } from './advisor';
+import { retrieveKnowledge, formatKnowledgeContext } from './knowledge';
 
 const SYSTEM_PROMPT = `You are FlowAIOS, an AI customer service agent for a Thai e-commerce business.
 Reply in the same language the customer used (default: Thai).
@@ -44,16 +45,18 @@ export async function runAutoReply(args: RunAutoReplyArgs): Promise<void> {
 
   if (history.length === 0) return;
 
+  const lastInbound = [...history].reverse().find((m) => m.role === 'user')?.content ?? '';
+
   const start = Date.now();
   let replyText: string;
   let model = 'unknown';
+  let kbHitIds: string[] = [];
 
-  // Configuration Advisor: check if any approved rule matches the latest
-  // inbound. A matching rule short-circuits Gemini entirely. The rule's
-  // applied_count is bumped by applyRules() itself.
-  const lastInbound = [...history].reverse().find((m) => m.role === 'user');
+  // Configuration Advisor (M1.5 · Chunk 17): check if any approved rule
+  // matches the latest inbound. A matching rule short-circuits Gemini
+  // entirely. The rule's applied_count is bumped by applyRules() itself.
   const matched = lastInbound
-    ? await applyRules({ orgId: args.orgId, body: lastInbound.content }).catch(() => null)
+    ? await applyRules({ orgId: args.orgId, body: lastInbound }).catch(() => null)
     : null;
 
   if (matched && matched.actionKind === 'auto_reply') {
@@ -65,9 +68,19 @@ export async function runAutoReply(args: RunAutoReplyArgs): Promise<void> {
       replyText = '';
     }
   } else {
+    // Pull KB articles relevant to the latest inbound and inject them as
+    // a system message before history. KB-augmented replies (M1.4 main).
+    const kbHits = await retrieveKnowledge(args.orgId, lastInbound);
+    kbHitIds = kbHits.map((h) => h.id);
+    const kbContext = formatKnowledgeContext(kbHits);
+
+    const messages: LlmMessage[] = [{ role: 'system', content: SYSTEM_PROMPT }];
+    if (kbContext) messages.push({ role: 'system', content: kbContext });
+    messages.push(...history);
+
     try {
       const res = await generate({
-        messages: [{ role: 'system', content: SYSTEM_PROMPT }, ...history],
+        messages,
         temperature: 0.4,
         maxTokens: 400,
       });
@@ -110,7 +123,11 @@ export async function runAutoReply(args: RunAutoReplyArgs): Promise<void> {
     conversation_id: args.conversationId,
     kind: 'reply_suggest',
     model,
-    response: { text: replyText },
+    response: {
+      text: replyText,
+      kb_hits: kbHitIds,
+      advisor_rule_id: matched?.ruleId ?? null,
+    },
     accepted: true,
     latency_ms: Date.now() - start,
   });
