@@ -412,14 +412,19 @@ export async function computeOverviewKpis(): Promise<OverviewKpis> {
     const dayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
     const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
 
-    const [{ data: threads }, { data: messages }, { data: flagged }, { data: last24 }, { data: last7 }] =
-      await Promise.all([
-        admin.from('prospect_threads').select('id, status'),
-        admin.from('prospect_messages').select('id, ai_generated, tokens_input, tokens_output, cost_micros'),
-        admin.from('prospect_messages').select('id', { count: 'exact', head: true }).eq('flagged', 'jailbreak'),
-        admin.from('prospect_threads').select('id', { count: 'exact', head: true }).gt('created_at', dayAgo),
-        admin.from('prospect_threads').select('id', { count: 'exact', head: true }).gt('created_at', weekAgo),
-      ]);
+    const [
+      { data: threads },
+      { data: messages },
+      { count: flaggedCount },
+      { count: last24Count },
+      { count: last7Count },
+    ] = await Promise.all([
+      admin.from('prospect_threads').select('id, status'),
+      admin.from('prospect_messages').select('id, ai_generated, tokens_input, tokens_output, cost_micros'),
+      admin.from('prospect_messages').select('*', { count: 'exact', head: true }).eq('flagged', 'jailbreak'),
+      admin.from('prospect_threads').select('*', { count: 'exact', head: true }).gt('created_at', dayAgo),
+      admin.from('prospect_threads').select('*', { count: 'exact', head: true }).gt('created_at', weekAgo),
+    ]);
 
     const tt = threads ?? [];
     const mm = messages ?? [];
@@ -434,9 +439,9 @@ export async function computeOverviewKpis(): Promise<OverviewKpis> {
       totalTokensInput: ai.reduce((sum, m) => sum + Number(m.tokens_input ?? 0), 0),
       totalTokensOutput: ai.reduce((sum, m) => sum + Number(m.tokens_output ?? 0), 0),
       totalCostMicros: ai.reduce((sum, m) => sum + Number(m.cost_micros ?? 0), 0),
-      threadsLast24h: (flagged as unknown as { count?: number })?.count ? Number(last24) : 0,
-      threadsLast7d: 0, // populated below
-      flaggedJailbreakCount: 0, // populated below
+      threadsLast24h: last24Count ?? 0,
+      threadsLast7d: last7Count ?? 0,
+      flaggedJailbreakCount: flaggedCount ?? 0,
     };
   }
 
