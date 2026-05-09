@@ -30,13 +30,15 @@ interface LifecycleResult {
 }
 
 export async function GET(req: Request) {
-  // Vercel cron requests carry "Authorization: Bearer <CRON_SECRET>".
+  // Auth: prefer Vercel's built-in cron signature header; fall back to a
+  // CRON_SECRET bearer for non-Vercel triggers. Fail closed if neither
+  // matches so a public probe can't kick off org-wide lifecycle work.
+  const vercelCronHeader = req.headers.get('x-vercel-cron');
+  const auth = req.headers.get('authorization');
   const cronSecret = process.env.CRON_SECRET;
-  if (cronSecret) {
-    const auth = req.headers.get('authorization');
-    if (auth !== `Bearer ${cronSecret}`) {
-      return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
-    }
+  const validBearer = cronSecret && auth === `Bearer ${cronSecret}`;
+  if (!vercelCronHeader && !validBearer) {
+    return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
   }
 
   const admin = createAdminClient();
