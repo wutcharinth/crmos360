@@ -341,9 +341,14 @@ function AiDraftPanel({
   return (
     <div className="self-stretch rounded-2xl border border-warm/25 bg-gradient-to-b from-warm-soft to-paper p-4">
       <div className="mb-2.5 flex items-center gap-2 text-[12px] text-warm">
-        <span className="inline-flex h-5 w-5 items-center justify-center rounded-md bg-warm font-mono text-[10px] font-bold text-paper">
-          F
-        </span>
+        <img
+          src="/flowaios-logo.png"
+          alt=""
+          aria-hidden
+          width={20}
+          height={20}
+          className="h-5 w-5 shrink-0"
+        />
         <span className="font-medium">AI suggested reply</span>
         {confidence != null && (
           <span className="ml-auto rounded-full border border-warm/20 bg-paper px-2 py-0.5 font-mono text-[10.5px]">

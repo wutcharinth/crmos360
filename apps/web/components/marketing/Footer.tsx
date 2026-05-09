@@ -7,9 +7,14 @@ export function Footer() {
     <footer className="border-t border-hairline bg-paper py-12">
       <div className="mx-auto flex w-[min(1240px,calc(100%-48px))] flex-col items-start gap-7 md:flex-row md:items-center md:justify-between">
         <div className="flex items-center gap-3">
-          <span className="inline-flex h-[26px] w-[26px] items-center justify-center rounded-md bg-gradient-to-br from-warm to-warm-2 font-mono text-[11px] font-bold tracking-[-0.02em] text-paper">
-            360
-          </span>
+          <img
+            src="/flowaios-logo.png"
+            alt=""
+            aria-hidden
+            width={26}
+            height={26}
+            className="h-[26px] w-[26px] shrink-0"
+          />
           <div className="text-[13px] text-mute">
             <b className="font-medium text-ink">FlowAIOS</b>
             <span className="mx-2 text-hairline-2">·</span>

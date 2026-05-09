@@ -71,9 +71,14 @@ export default async function AppLayout({ children }: { children: React.ReactNod
               href="/dashboard"
               className="flex items-center gap-2.5 text-[15px] font-semibold tracking-tight"
             >
-              <span className="inline-flex h-6 w-6 items-center justify-center rounded-md bg-gradient-to-br from-warm to-warm-2 font-mono text-[11px] font-bold text-paper">
-                F
-              </span>
+              <img
+                src="/flowaios-logo.png"
+                alt=""
+                aria-hidden
+                width={24}
+                height={24}
+                className="h-6 w-6 shrink-0"
+              />
               FlowAIOS
             </Link>
             <span className="text-sm text-muted-foreground">{orgName}</span>

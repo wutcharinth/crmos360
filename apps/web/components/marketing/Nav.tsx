@@ -373,32 +373,21 @@ function DesktopNavLink({
 /**
  * Brand mark.
  *
- * Solid warm rounded square with a hand-drawn F glyph in paper. The F
- * geometry is path-based (not text-rendered) so it renders identically
- * at every size from 16px favicon to 28px header lockup. No gradient,
- * no shimmer, no shadow — the mark earns recognition from shape alone.
- *
- * Keep in sync with /apps/web/app/icon.svg (favicon).
+ * Custom indigo ribbon F monogram, served from /flowaios-logo.png (also
+ * used as the favicon at /icon.png). Image-based rather than path-drawn
+ * because the gradient + 3D shading would be noisy to recreate as inline
+ * SVG, and the asset is small (~64KB) so it's cheaper to ship as PNG.
  */
 function LogoMark({ className }: { className?: string }) {
   return (
-    <svg
-      viewBox="0 0 28 28"
+    <img
+      src="/flowaios-logo.png"
+      alt=""
       aria-hidden
+      width={28}
+      height={28}
       className={className ?? 'h-[26px] w-[26px] shrink-0'}
-    >
-      <defs>
-        <linearGradient id="nav-logo-grad" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0" stopColor="#4F46E5" />
-          <stop offset="1" stopColor="#818CF8" />
-        </linearGradient>
-      </defs>
-      <rect width="28" height="28" rx="7" fill="url(#nav-logo-grad)" />
-      <path
-        d="M10 7 H20 V9.6 H12.5 V13.4 H18 V16 H12.5 V21 H10 Z"
-        fill="#fff"
-      />
-    </svg>
+    />
   );
 }
 
