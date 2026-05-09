@@ -23,7 +23,6 @@ import { LangToggle } from '@/components/marketing/LangToggle';
 const links = [
   { href: '/#features', label: { th: 'ฟีเจอร์', en: 'Product' } },
   { href: '/pricing', label: { th: 'ราคา', en: 'Pricing' } },
-  { href: '/demo', label: { th: 'เดโม', en: 'Demo' } },
 ] as const;
 
 export function Nav() {
@@ -174,16 +173,40 @@ export function Nav() {
   );
 }
 
+/**
+ * Brand mark.
+ *
+ * Solid warm rounded square with a hand-drawn F glyph in paper. The F
+ * geometry is path-based (not text-rendered) so it renders identically
+ * at every size from 16px favicon to 28px header lockup. No gradient,
+ * no shimmer, no shadow — the mark earns recognition from shape alone.
+ *
+ * The SVG matches /public/icon.svg byte-for-byte except for the size
+ * wrapper. Keep them in sync.
+ */
+function LogoMark({ className }: { className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 28 28"
+      aria-hidden
+      className={className ?? 'h-[26px] w-[26px] shrink-0'}
+    >
+      <rect width="28" height="28" rx="7" className="fill-warm" />
+      <path
+        d="M10 7 H20 V9.6 H12.5 V13.4 H18 V16 H12.5 V21 H10 Z"
+        className="fill-paper"
+      />
+    </svg>
+  );
+}
+
 function Logo() {
   return (
     <Link
       href="/"
-      className="inline-flex shrink-0 items-center gap-2 text-[15.5px] font-semibold tracking-[-0.012em] text-ink"
+      className="inline-flex shrink-0 items-center gap-2.5 text-[15.5px] font-semibold tracking-[-0.012em] text-ink"
     >
-      <span aria-hidden className="relative inline-flex h-[7px] w-[7px]">
-        <span className="absolute inset-0 animate-pulse rounded-full bg-warm/40" />
-        <span className="absolute inset-[1.5px] rounded-full bg-warm" />
-      </span>
+      <LogoMark />
       FlowAIOS
     </Link>
   );
