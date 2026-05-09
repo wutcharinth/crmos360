@@ -109,6 +109,11 @@
   :lang(th), [lang="th"] {
     font-family: var(--font-sans), var(--font-thai), ui-sans-serif, sans-serif;
   }
+
+  /* Bilingual single-DOM pattern (ported from JongToh).
+     Both translations live in the same DOM; <html lang> determines which is shown. */
+  html[lang="th"] .en-only { display: none; }
+  html[lang="en"] .th-only { display: none; }
 }
 
 /*

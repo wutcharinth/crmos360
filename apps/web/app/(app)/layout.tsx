@@ -1,14 +1,28 @@
 import Link from 'next/link';
 import { requireMembership } from '@/lib/auth/current-user';
+import { isSupabaseConfigured } from '@/lib/supabase/server';
 import { Button } from '@/components/ui/button';
 import { UserMenu } from '@/components/app/user-menu';
+
+interface DevContext {
+  orgName: string;
+  role: 'owner' | 'admin' | 'agent';
+  user: { email: string };
+}
+
+const DEV_CONTEXT: DevContext = {
+  orgName: 'Demo Org',
+  role: 'owner',
+  user: { email: 'dev@local' },
+};
 
 export const dynamic = 'force-dynamic';
 
 const mainLinks = [
-  { href: '/dashboard', label: 'Dashboard' },
   { href: '/inbox', label: 'Inbox' },
-  { href: '/customers', label: 'Customers' },
+  { href: '/knowledge', label: 'Knowledge' },
+  { href: '/intelligence', label: 'Intelligence' },
+  { href: '/advisor', label: 'Advisor' },
 ];
 
 const adminLinks = [
@@ -16,11 +30,21 @@ const adminLinks = [
   { href: '/admin/team', label: 'Team' },
   { href: '/admin/integrations', label: 'Integrations' },
   { href: '/admin/audit', label: 'Audit' },
-  { href: '/admin/settings', label: 'Settings' },
+];
+
+const settingsLinks = [
+  { href: '/settings/appearance', label: 'Appearance' },
+  { href: '/settings/channels', label: 'Channels' },
+  { href: '/settings/pdpa', label: 'PDPA' },
 ];
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
-  const { orgName, role, user } = await requireMembership();
+  // Dev fallback: when Supabase env is missing, render with a synthetic admin
+  // context so the new in-app + admin surfaces are walkable for prototyping.
+  const ctx = isSupabaseConfigured()
+    ? await requireMembership()
+    : DEV_CONTEXT;
+  const { orgName, role, user } = ctx;
   const isAdmin = role === 'owner' || role === 'admin';
 
   return (
@@ -41,7 +65,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
           </div>
           <div className="flex items-center gap-3">
             <Button asChild variant="ghost" size="sm">
-              <Link href="/settings/profile">Settings</Link>
+              <Link href="/settings/appearance">Settings</Link>
             </Button>
             <UserMenu email={user.email ?? ''} role={role} />
           </div>
@@ -70,6 +94,16 @@ export default async function AppLayout({ children }: { children: React.ReactNod
               ))}
             </>
           )}
+          <span className="mx-2 h-4 w-px bg-border" />
+          {settingsLinks.map((l) => (
+            <Link
+              key={l.href}
+              href={l.href}
+              className="rounded-md px-3 py-1.5 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+            >
+              {l.label}
+            </Link>
+          ))}
         </nav>
       </header>
       <div className="flex-1">{children}</div>

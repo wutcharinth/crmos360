@@ -1,16 +1,6 @@
 import Link from 'next/link';
-import { channels, heroPromises, heroThreads, type ThreadTag } from '@/lib/marketing/data';
-
-const tagClass: Record<ThreadTag, string> = {
-  Auto:
-    'text-mint border-mint/30 bg-mint-soft',
-  Review:
-    'text-warm border-warm/30 bg-warm-soft',
-  Escalate:
-    'text-rose border-rose/30 bg-[hsl(var(--rose)/0.06)]',
-  Growth:
-    'text-mute border-hairline bg-paper',
-};
+import { channels, heroPromises } from '@/lib/marketing/data';
+import { LiveThreads } from '@/components/marketing/LiveThreads';
 
 export function Hero() {
   return (
@@ -123,31 +113,8 @@ export function Hero() {
               ))}
             </div>
 
-            {/* threads */}
-            <div className="flex flex-col gap-2 border-hairline px-3.5 py-3.5 md:border-r">
-              <div className="flex justify-between px-1 pb-1.5">
-                <span className="label-mono">Live · Inbox</span>
-                <span className="label-mono not-italic text-mint">● 4 active</span>
-              </div>
-              {heroThreads.map((t) => (
-                <div
-                  key={t.sender}
-                  className={`group rounded-lg border border-hairline bg-paper px-3.5 py-3 transition-all duration-200 hover:border-hairline-2 hover:translate-x-0.5 ${
-                    t.hot ? 'border-l-2 border-l-warm' : ''
-                  }`}
-                >
-                  <div className="mb-1 flex items-center justify-between">
-                    <b className="text-[12.5px] font-medium text-ink">{t.sender}</b>
-                    <span
-                      className={`inline-block rounded-full border px-2 py-0.5 font-mono text-[10px] uppercase tracking-[0.1em] ${tagClass[t.tag]}`}
-                    >
-                      {t.tag}
-                    </span>
-                  </div>
-                  <p className="text-[12px] leading-snug text-ink-2">{t.body}</p>
-                </div>
-              ))}
-            </div>
+            {/* threads — animated via LiveThreads client component */}
+            <LiveThreads />
 
             {/* intel */}
             <div className="flex flex-col gap-3 px-3.5 py-3.5">

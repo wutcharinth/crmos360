@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { navLinks } from '@/lib/marketing/data';
+import { LangToggle } from '@/components/marketing/LangToggle';
 
 export function Nav() {
   return (
@@ -28,18 +29,21 @@ export function Nav() {
           ))}
         </nav>
 
-        <div className="flex items-center gap-3.5">
+        <div className="flex items-center gap-3">
+          <LangToggle />
           <Link
             href="/login"
             className="px-3.5 py-2 text-[13px] text-ink-2 transition-colors hover:text-ink"
           >
-            เข้าสู่ระบบ
+            <span className="th-only">เข้าสู่ระบบ</span>
+            <span className="en-only">Sign in</span>
           </Link>
           <Link
-            href="/signup"
+            href="/demo"
             className="rounded-md bg-ink px-4 py-2 text-[13px] font-medium text-paper transition-colors hover:bg-warm"
           >
-            ขอดูเดโม
+            <span className="th-only">ลองเดโม</span>
+            <span className="en-only">Try demo</span>
           </Link>
         </div>
       </div>

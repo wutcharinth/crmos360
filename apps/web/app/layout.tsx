@@ -1,5 +1,9 @@
 import type { Metadata } from 'next';
 import { Inter, JetBrains_Mono, Noto_Sans_Thai } from 'next/font/google';
+import { cookies } from 'next/headers';
+import { SkinProvider } from '@/components/skin-provider';
+import { SKIN_COOKIE_NAME, readSkinCookie } from '@/lib/skin-cookie';
+import { LANG_COOKIE, readLangCookie } from '@/lib/marketing/lang';
 import './globals.css';
 
 const inter = Inter({
@@ -38,14 +42,22 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  const cookieStore = await cookies();
+  const initialSkin = readSkinCookie(cookieStore.get(SKIN_COOKIE_NAME)?.value);
+  const initialLang = readLangCookie(cookieStore.get(LANG_COOKIE)?.value);
+  // Resolve `system` to `daylight` at SSR (no window). Client effect re-resolves.
+  const initialClass = initialSkin === 'cockpit' ? 'dark' : '';
+
   return (
     <html
-      lang="th"
-      className={`${inter.variable} ${notoSansThai.variable} ${jetbrainsMono.variable}`}
+      lang={initialLang}
+      className={`${inter.variable} ${notoSansThai.variable} ${jetbrainsMono.variable} ${initialClass}`}
       suppressHydrationWarning
     >
-      <body className="font-sans antialiased">{children}</body>
+      <body className="font-sans antialiased">
+        <SkinProvider initialSkin={initialSkin}>{children}</SkinProvider>
+      </body>
     </html>
   );
 }
