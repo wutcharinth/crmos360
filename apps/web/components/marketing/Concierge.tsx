@@ -320,7 +320,14 @@ function ChatBody({
 }) {
   return (
     <>
-      <div ref={scrollRef} className="flex-1 space-y-3 overflow-y-auto px-5 py-4 text-[14px]">
+      <div
+        ref={scrollRef}
+        role="log"
+        aria-live="polite"
+        aria-relevant="additions"
+        aria-label="Concierge conversation"
+        className="flex-1 space-y-3 overflow-y-auto px-5 py-4 text-[14px]"
+      >
         {messages.map((m, i) => (
           <div
             key={i}
