@@ -75,17 +75,76 @@ export async function listCustomers(): Promise<MockCustomer[]> {
 
 // — Lessons ——————————————————————————————————————————————————————————————
 
+interface LessonRow {
+  id: string;
+  org_id: string;
+  source_conversation_id: string | null;
+  statement: string;
+  reasoning: string;
+  status: 'pending' | 'approved' | 'rejected';
+  suggested_rule_jsonb: { condition: string; action: string } | null;
+  created_at: string;
+  approved_at: string | null;
+}
+
+function lessonRowToMock(row: LessonRow, approverName: string | null): MockLesson {
+  return {
+    id: row.id,
+    orgId: row.org_id,
+    statement: row.statement,
+    reasoning: row.reasoning,
+    sourceConversationId: row.source_conversation_id,
+    status: row.status,
+    suggestedRule: row.suggested_rule_jsonb,
+    createdAt: row.created_at,
+    approvedAt: row.approved_at,
+    approvedByName: approverName,
+  };
+}
+
 export async function listLessons(status?: 'pending' | 'approved' | 'rejected'): Promise<MockLesson[]> {
-  if (!useMocks()) return notImplemented('lessons');
-  let rows = [...mockLessons];
-  if (status) rows = rows.filter((l) => l.status === status);
-  rows.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-  return rows;
+  if (useMocks()) {
+    let rows = [...mockLessons];
+    if (status) rows = rows.filter((l) => l.status === status);
+    rows.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+    return rows;
+  }
+
+  // Real Supabase path — server-only callers (admin / app routes).
+  const { createAdminClient } = await import('@/lib/supabase/admin');
+  const { requireMembership } = await import('@/lib/auth/current-user');
+  const { orgId } = await requireMembership();
+  const admin = createAdminClient();
+  let q = admin
+    .from('lessons')
+    .select(
+      'id, org_id, source_conversation_id, statement, reasoning, status, suggested_rule_jsonb, created_at, approved_at',
+    )
+    .eq('org_id', orgId)
+    .order('created_at', { ascending: false })
+    .limit(200);
+  if (status) q = q.eq('status', status);
+  const { data } = await q;
+  return ((data ?? []) as LessonRow[]).map((r) => lessonRowToMock(r, null));
 }
 
 export async function getLesson(id: string): Promise<MockLesson | null> {
-  if (!useMocks()) return notImplemented('lessons');
-  return findLesson(id) ?? null;
+  if (useMocks()) return findLesson(id) ?? null;
+
+  const { createAdminClient } = await import('@/lib/supabase/admin');
+  const { requireMembership } = await import('@/lib/auth/current-user');
+  const { orgId } = await requireMembership();
+  const admin = createAdminClient();
+  const { data } = await admin
+    .from('lessons')
+    .select(
+      'id, org_id, source_conversation_id, statement, reasoning, status, suggested_rule_jsonb, created_at, approved_at',
+    )
+    .eq('id', id)
+    .eq('org_id', orgId)
+    .maybeSingle();
+  if (!data) return null;
+  return lessonRowToMock(data as LessonRow, null);
 }
 
 // — Dashboard ——————————————————————————————————————————————————————————————
