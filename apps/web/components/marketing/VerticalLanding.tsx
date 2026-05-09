@@ -155,7 +155,7 @@ export function VerticalLanding({
             <p className="label-mono">{kicker}</p>
             <h1 className="display-lg mt-5 max-w-[18ch]">
               {headline}{' '}
-              <em className="not-italic font-semibold text-warm">{headlineEm}</em>
+              <em className="not-italic font-semibold text-warm whitespace-nowrap">{headlineEm}</em>
               {headlineTrail ? <> {headlineTrail}</> : null}
             </h1>
             <p className="lead mt-6 max-w-[58ch]">{lead}</p>

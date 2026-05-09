@@ -171,6 +171,18 @@
     color: hsl(var(--mute));
     font-weight: 500;
   }
+  .display-xl,
+  .display-lg,
+  .display-md {
+    /*
+     * text-wrap: balance distributes line breaks so multi-line headlines
+     * read with roughly equal-length lines instead of orphaning the last
+     * word or two on a line by themselves. Browsers without support fall
+     * back to default wrapping silently. Lifted from the FlowAIOS
+     * prototype's .h-display rule.
+     */
+    text-wrap: balance;
+  }
   .display-xl {
     font-family: var(--font-display), var(--font-sans);
     font-size: clamp(40px, 5.4vw, 76px);

@@ -15,11 +15,11 @@ export function TrustBand() {
         <h2 className="display-md mt-3 max-w-[28ch]">
           <span className="th-only">
             ไม่ใช่ trust-badge wallpaper.{' '}
-            <em className="not-italic font-semibold text-warm">เหตุผลจริง</em>.
+            <em className="not-italic font-semibold text-warm whitespace-nowrap">เหตุผลจริง.</em>
           </span>
           <span className="en-only">
             Not a trust-badge wallpaper.{' '}
-            <em className="not-italic font-semibold text-warm">Real reasons</em>.
+            <em className="not-italic font-semibold text-warm whitespace-nowrap">Real reasons.</em>
           </span>
         </h2>
 

@@ -17,12 +17,12 @@ export function DogfoodPitch() {
         <p className="mt-6 text-[clamp(22px,2.6vw,32px)] font-light leading-snug tracking-tight text-ink">
           <span className="th-only">
             AI ที่ตอบคุณบนหน้านี้คือ{' '}
-            <em className="not-italic font-semibold text-warm">ตัวเดียวกัน</em>{' '}
+            <em className="not-italic font-semibold text-warm whitespace-nowrap">ตัวเดียวกัน</em>{' '}
             กับที่คุณจะส่งให้ตอบลูกค้าของคุณวันแรก.
           </span>
           <span className="en-only">
             The concierge answering you on this page is the{' '}
-            <em className="not-italic font-semibold text-warm">same AI</em> you&rsquo;ll
+            <em className="not-italic font-semibold text-warm whitespace-nowrap">same AI</em> you&rsquo;ll
             ship to your customers on day one.
           </span>
         </p>

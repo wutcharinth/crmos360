@@ -25,7 +25,7 @@ export default function PricingPage() {
               Pricing
             </span>
             <h1 className="display-lg mx-auto max-w-3xl text-ink">
-              ราคาที่ <em className="not-italic font-semibold text-warm">match scale ของคุณ</em>
+              ราคาที่ <em className="not-italic font-semibold text-warm whitespace-nowrap">match scale ของคุณ</em>
               <br />
               ไม่ใช่ตาม seat count
             </h1>
