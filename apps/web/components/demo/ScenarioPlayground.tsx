@@ -18,9 +18,12 @@ interface Message {
   role: 'user' | 'assistant';
   content: string;
   pending?: boolean;
+  failed?: boolean;
+  /** Echoes the user message that produced this assistant reply so retry can resend. */
+  retrySource?: string;
 }
 
-const TURNS_PER_SCENARIO = 4;
+const TURNS_PER_SCENARIO = 6;
 
 export function ScenarioPlayground({ initialLang = 'th' }: { initialLang?: 'th' | 'en' }) {
   const [activeId, setActiveId] = useState<ScenarioId>(SCENARIOS[0]!.id);
@@ -107,25 +110,56 @@ export function ScenarioPlayground({ initialLang = 'th' }: { initialLang?: 'th' 
           history: historyForApi,
         }),
       });
-      const data = (await res.json()) as { reply?: string };
-      const reply = data.reply ?? "Sorry, I couldn't reach the model. Try again?";
+      const data = (await res.json()) as {
+        reply?: string;
+        finishReason?: string;
+        rateLimited?: boolean;
+        reason?: string;
+      };
+      const reply = (data.reply ?? '').trim();
+      const ok = res.ok && reply.length > 0;
       setMessagesByScenario((prev) => {
         const list = [...(prev[activeId] ?? [])];
         for (let i = list.length - 1; i >= 0; i--) {
           if (list[i]?.pending) {
-            list[i] = { role: 'assistant', content: reply };
+            list[i] = ok
+              ? { role: 'assistant', content: reply }
+              : {
+                  role: 'assistant',
+                  content:
+                    reply ||
+                    (data.rateLimited
+                      ? lang === 'th'
+                        ? 'แตะเบรกชั่วคราว ลองอีกครั้งใน 1-2 นาทีนะคะ'
+                        : 'Brief pause — try again in a minute.'
+                      : lang === 'th'
+                        ? 'ระบบขัดข้อง ลองอีกครั้งนะคะ'
+                        : 'Hit a snag. Tap retry below.'),
+                  failed: true,
+                  retrySource: text,
+                };
             break;
           }
         }
         return { ...prev, [activeId]: list };
       });
-      setTurnsByScenario((prev) => ({ ...prev, [activeId]: (prev[activeId] ?? 0) + 1 }));
+      if (ok) {
+        setTurnsByScenario((prev) => ({ ...prev, [activeId]: (prev[activeId] ?? 0) + 1 }));
+      }
     } catch {
       setMessagesByScenario((prev) => {
         const list = [...(prev[activeId] ?? [])];
         for (let i = list.length - 1; i >= 0; i--) {
           if (list[i]?.pending) {
-            list[i] = { role: 'assistant', content: 'Network hiccup. Please try again.' };
+            list[i] = {
+              role: 'assistant',
+              content:
+                lang === 'th'
+                  ? 'เครือข่ายขัดข้อง ลองอีกครั้งนะคะ'
+                  : 'Network hiccup — tap retry below.',
+              failed: true,
+              retrySource: text,
+            };
             break;
           }
         }
@@ -134,6 +168,27 @@ export function ScenarioPlayground({ initialLang = 'th' }: { initialLang?: 'th' 
     } finally {
       setSending(false);
     }
+  };
+
+  const retry = (text: string) => {
+    setMessagesByScenario((prev) => {
+      const list = (prev[activeId] ?? []).filter(
+        (m, idx, arr) =>
+          // drop the failed assistant + the user message that produced it
+          !(m.failed && arr[idx - 1]?.role === 'user' && arr[idx - 1]?.content === text) &&
+          !(m.role === 'user' && m.content === text && arr[idx + 1]?.failed),
+      );
+      return { ...prev, [activeId]: list };
+    });
+    void send(text);
+  };
+
+  const reset = () => {
+    setMessagesByScenario((prev) => ({
+      ...prev,
+      [activeId]: [{ role: 'assistant', content: active.greeting[lang] }],
+    }));
+    setTurnsByScenario((prev) => ({ ...prev, [activeId]: 0 }));
   };
 
   const onSubmit = (e: FormEvent) => {
@@ -188,9 +243,28 @@ export function ScenarioPlayground({ initialLang = 'th' }: { initialLang?: 'th' 
                 {lang === 'th' ? active.tagline.th : active.tagline.en}
               </p>
             </div>
-            <span className="font-mono text-[10px] uppercase tracking-widest text-mute">
-              {turns}/{TURNS_PER_SCENARIO}
-            </span>
+            <div className="flex items-center gap-3">
+              <span
+                className="font-mono text-[10px] uppercase tracking-widest text-mute"
+                title={
+                  lang === 'th'
+                    ? `ใช้ไป ${turns} จาก ${TURNS_PER_SCENARIO} เทิร์น (ป้องกันค่าใช้จ่าย AI)`
+                    : `Used ${turns} of ${TURNS_PER_SCENARIO} turns (cost guard)`
+                }
+              >
+                {lang === 'th' ? 'เทิร์น' : 'turn'} {turns}/{TURNS_PER_SCENARIO}
+              </span>
+              {turns > 0 && (
+                <button
+                  type="button"
+                  onClick={reset}
+                  className="rounded-md border border-hairline bg-paper px-2 py-1 font-mono text-[10px] uppercase tracking-widest text-mute transition-colors hover:border-warm hover:text-warm"
+                  title={lang === 'th' ? 'เริ่มใหม่' : 'Reset chat'}
+                >
+                  {lang === 'th' ? 'เริ่มใหม่' : 'reset'}
+                </button>
+              )}
+            </div>
           </header>
 
           {/* Capability callout */}
@@ -219,10 +293,32 @@ export function ScenarioPlayground({ initialLang = 'th' }: { initialLang?: 'th' 
                       ? 'rounded-br-sm bg-warm text-paper'
                       : m.pending
                         ? 'rounded-bl-sm bg-paper-2 text-mute italic'
-                        : 'rounded-bl-sm bg-paper-2 text-ink'
+                        : m.failed
+                          ? 'rounded-bl-sm border border-rose/30 bg-[hsl(var(--rose)/0.06)] text-ink'
+                          : 'rounded-bl-sm bg-paper-2 text-ink'
                   }`}
                 >
-                  {m.pending ? '…' : m.content}
+                  {m.pending ? (
+                    <span className="inline-flex items-center gap-1">
+                      <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-mute" />
+                      <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-mute [animation-delay:0.15s]" />
+                      <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-mute [animation-delay:0.3s]" />
+                    </span>
+                  ) : (
+                    <>
+                      {m.content}
+                      {m.failed && m.retrySource && (
+                        <button
+                          type="button"
+                          onClick={() => retry(m.retrySource!)}
+                          disabled={sending}
+                          className="ml-2 mt-2 inline-block rounded-md border border-rose/40 px-2 py-0.5 font-mono text-[10px] uppercase tracking-widest text-rose transition-colors hover:bg-rose/10 disabled:opacity-40"
+                        >
+                          {lang === 'th' ? 'ลองใหม่' : 'retry'}
+                        </button>
+                      )}
+                    </>
+                  )}
                 </div>
               </div>
             ))}

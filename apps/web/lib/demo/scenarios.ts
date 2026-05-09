@@ -20,7 +20,11 @@ export type ScenarioId =
   | 'fashion'
   | 'food'
   | 'electronics'
-  | 'supplements';
+  | 'supplements'
+  | 'hotel'
+  | 'education'
+  | 'realestate'
+  | 'fitness';
 
 /** Icon glyph identifiers — render via the CategoryIcon component. */
 export type CategoryIconKey =
@@ -28,7 +32,11 @@ export type CategoryIconKey =
   | 'shirt'
   | 'bowl'
   | 'monitor'
-  | 'leaf';
+  | 'leaf'
+  | 'bed'
+  | 'book'
+  | 'home'
+  | 'dumbbell';
 
 export interface ScenarioMeta {
   id: ScenarioId;
@@ -56,8 +64,8 @@ export const SCENARIOS: ReadonlyArray<ScenarioMeta> = [
       en: 'AI remembers allergies + checks ingredient compatibility before recommending',
     },
     greeting: {
-      th: 'สวัสดีค่ะ ยินดีต้อนรับสู่ Klin Skin มีอะไรให้ช่วยไหมคะ คุณเคยซื้อ Cleansing Balm Original เดือนที่แล้ว ขอจดข้อมูลผิวเพิ่มเติมเพื่อแนะนำให้แม่นยำขึ้นได้ไหมคะ',
-      en: "Hi! Welcome back to Klin Skin. You bought Cleansing Balm Original last month — anything else I can help with today? Mind if I ask a couple of skin details so I can recommend more accurately?",
+      th: 'สวัสดีค่ะ ยินดีต้อนรับสู่ Klin Skin คุณลูกค้าเคยซื้อ Cleansing Balm Original เดือนที่แล้ว วันนี้มีอะไรให้ช่วยไหมคะ ถามเรื่องส่วนผสมหรือผลิตภัณฑ์อื่นได้เลยค่ะ',
+      en: "Hi! Welcome back to Klin Skin. You bought Cleansing Balm Original last month — happy to help with ingredient questions, allergies, or recommend something new today.",
     },
     starters: [
       {
@@ -167,6 +175,134 @@ export const SCENARIOS: ReadonlyArray<ScenarioMeta> = [
       {
         th: 'มี trade-in iPhone 13 Pro ไป iPhone 15 ได้ไหม ราคาประมาณเท่าไร',
         en: 'Can I trade in iPhone 13 Pro for iPhone 15? Rough price estimate?',
+      },
+    ],
+  },
+  {
+    id: 'hotel',
+    icon: 'bed',
+    category: { th: 'Hotel / Travel', en: 'Hotel / Travel' },
+    brand: 'Baan Sukhum Boutique',
+    tagline: {
+      th: 'บูทีคโฮเทล 24 ห้อง · สุขุมวิท ซอย 11',
+      en: '24-room boutique hotel · Sukhumvit Soi 11',
+    },
+    capability: {
+      th: 'AI เช็คห้องว่าง, รับ booking, จำ preference ของแขกประจำ',
+      en: 'AI checks live availability, takes bookings, remembers preferences for returning guests',
+    },
+    greeting: {
+      th: 'สวัสดีค่ะ Baan Sukhum Boutique อยากเช็คห้องว่างหรือสอบถามเรื่อง booking ที่จองไว้ไหมคะ บอกวันที่ที่จะเข้าพักได้เลย หรือบอกเลข booking มาเช็คให้ค่ะ',
+      en: 'Welcome to Baan Sukhum Boutique. Looking for a room, or have a booking to check? Share your dates or booking number and I can help.',
+    },
+    starters: [
+      {
+        th: 'ห้องว่าง 14-16 พ.ค. สำหรับ 2 คน มีไหมคะ',
+        en: 'Any rooms for 2 people, May 14-16?',
+      },
+      {
+        th: 'จะเช็คอินตี 1 ทุ่ม booking #B5021 จะมาช้าหน่อยได้ไหมครับ',
+        en: 'Late check-in around 7pm for booking #B5021 — possible?',
+      },
+      {
+        th: 'มีรถรับสนามบินไหม สุวรรณภูมิ',
+        en: 'Airport pickup from Suvarnabhumi available?',
+      },
+    ],
+  },
+  {
+    id: 'education',
+    icon: 'book',
+    category: { th: 'Education / Tutoring', en: 'Education / Tutoring' },
+    brand: 'Lumina Learning',
+    tagline: {
+      th: 'โรงเรียนกวดวิชา · IELTS · TOEFL · SAT',
+      en: 'Test prep tutoring · IELTS · TOEFL · SAT',
+    },
+    capability: {
+      th: 'AI แนะนำ course ตามเป้าคะแนน, ตอบเรื่องตารางสอน, ส่งต่อเรื่องราคาให้ที่ปรึกษา',
+      en: 'AI matches courses to target scores, answers schedule questions, escalates pricing/contracts to advisors',
+    },
+    greeting: {
+      th: 'สวัสดีค่ะ Lumina Learning อยากเตรียมสอบอะไรคะ บอกเป้าคะแนนและเวลาที่มีให้ดิฉันแนะนำคอร์สที่เหมาะที่สุดได้ค่ะ คำถามเรื่องราคา promotion ส่งต่อให้ที่ปรึกษานะคะ',
+      en: 'Hi from Lumina Learning. What are you preparing for? Tell me your target score and timeline — I can match you to the right course. Pricing and promotions go through our advisors.',
+    },
+    starters: [
+      {
+        th: 'อยากได้ IELTS 7.5 ใน 3 เดือน เริ่มจากไหนคะ',
+        en: 'Want IELTS 7.5 in 3 months — where do I start?',
+      },
+      {
+        th: 'คอร์ส SAT รอบเช้า เสาร์-อาทิตย์ มีไหมคะ',
+        en: 'Any SAT classes on weekend mornings?',
+      },
+      {
+        th: 'เคยเรียน TOEFL ที่อื่นแล้ว ทำ placement test ที่นี่ได้ไหม',
+        en: 'I studied TOEFL elsewhere — can I do a placement test here?',
+      },
+    ],
+  },
+  {
+    id: 'realestate',
+    icon: 'home',
+    category: { th: 'Real Estate', en: 'Real Estate' },
+    brand: 'Habitate',
+    tagline: {
+      th: 'นายหน้าอสังหาฯ · คอนโด + บ้าน กรุงเทพ',
+      en: 'Bangkok property brokerage · condos + houses',
+    },
+    capability: {
+      th: 'AI แนะนำ unit ตาม budget, ตอบเรื่องทำเล, นัดเข้าชมให้นายหน้า',
+      en: 'AI matches units to budget, answers neighborhood questions, schedules viewings with the broker',
+    },
+    greeting: {
+      th: 'สวัสดีครับ Habitate มองหาคอนโดหรือบ้านโซนไหนครับ บอก budget และทำเลที่สนใจ ผมจะดูยูนิตที่ตรงให้ การ negotiate ราคาและสัญญาส่งต่อให้นายหน้าเลยครับ',
+      en: 'Hi from Habitate. Looking for a condo or house? Share budget and area and I can pull matching units. Price negotiation + contracts go through our broker.',
+    },
+    starters: [
+      {
+        th: '1-bed คอนโด BTS Asoke ราคาไม่เกิน 15 ล้าน มีไหมครับ',
+        en: '1-bed condo near BTS Asoke under 15M — what do you have?',
+      },
+      {
+        th: 'อยากดู Q4 Sukhumvit 36 ใน 3 ห้องที่มี ขอดูสัปดาห์นี้ได้ไหม',
+        en: 'Can I tour 3 units at Q4 Sukhumvit 36 this week?',
+      },
+      {
+        th: 'ค่าโอน + ค่าธรรมเนียมทั่วไปประมาณกี่เปอร์เซ็นต์ของราคาขายครับ',
+        en: 'Roughly what % of sale price are transfer fees + closing costs?',
+      },
+    ],
+  },
+  {
+    id: 'fitness',
+    icon: 'dumbbell',
+    category: { th: 'Fitness / Wellness', en: 'Fitness / Wellness' },
+    brand: 'Pulse Studio',
+    tagline: {
+      th: 'พิลาทิส + ฟังก์ชั่นนัลเทรนนิ่ง · 4 สาขา',
+      en: 'Pilates + functional training · 4 studios',
+    },
+    capability: {
+      th: 'AI จองคลาส, แนะนำ class ตามเป้าหมาย, escalate การปรับ medical ให้ trainer',
+      en: 'AI books classes, matches you to a class type by goal, escalates medical questions to a trainer',
+    },
+    greeting: {
+      th: 'สวัสดีค่ะ Pulse Studio อยากจองคลาสหรือสอบถามคลาสไหนคะ บอกเป้าหมาย (ลดน้ำหนัก, ฟิตขึ้น, ฟื้นฟูบาดเจ็บ) ให้ดิฉันแนะนำคลาสที่เหมาะค่ะ คำถามเรื่อง medical condition ส่งต่อให้เทรนเนอร์นะคะ',
+      en: 'Hi from Pulse Studio. Booking a class, or want a recommendation? Tell me your goal (weight loss, strength, injury recovery) and I can match you. Medical questions go to a trainer.',
+    },
+    starters: [
+      {
+        th: 'มือใหม่ พิลาทิสกับ functional ต่างกันยังไงคะ ควรเริ่มอันไหน',
+        en: "I'm new — Pilates vs functional, what's the difference? Which should I start with?",
+      },
+      {
+        th: 'มีคลาส Reformer ตอนเย็น 19:00 สาขาทองหล่อ พรุ่งนี้ว่างไหม',
+        en: 'Any 7pm Reformer class at Thonglor branch tomorrow?',
+      },
+      {
+        th: 'ต้องการยกเลิก booking #PB-2105 คืนเงินได้ไหม',
+        en: 'Need to cancel booking #PB-2105 — refundable?',
       },
     ],
   },

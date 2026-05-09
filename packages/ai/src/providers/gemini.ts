@@ -8,6 +8,20 @@ interface GeminiArgs {
   maxTokens?: number;
 }
 
+export type GeminiFinishReason =
+  | 'STOP'
+  | 'MAX_TOKENS'
+  | 'SAFETY'
+  | 'RECITATION'
+  | 'OTHER'
+  | 'UNKNOWN';
+
+export interface GeminiResult {
+  text: string;
+  finishReason: GeminiFinishReason;
+  safetyBlocked: boolean;
+}
+
 function buildContents(messages: LlmMessage[]): { systemInstruction?: string; contents: Content[] } {
   const systemMsg = messages.find((m) => m.role === 'system');
   const contents: Content[] = messages
@@ -25,7 +39,16 @@ function client() {
   return new GoogleGenerativeAI(key);
 }
 
+/**
+ * Plain-text helper. Throws on failure. Use generateGeminiDetailed if
+ * you need the finish reason (truncation / safety detection).
+ */
 export async function generateGemini(args: GeminiArgs): Promise<string> {
+  const result = await generateGeminiDetailed(args);
+  return result.text;
+}
+
+export async function generateGeminiDetailed(args: GeminiArgs): Promise<GeminiResult> {
   const { systemInstruction, contents } = buildContents(args.messages);
   const model = client().getGenerativeModel({
     model: args.model,
@@ -35,8 +58,25 @@ export async function generateGemini(args: GeminiArgs): Promise<string> {
       maxOutputTokens: args.maxTokens ?? 1024,
     },
   });
+
   const result = await model.generateContent({ contents });
-  return result.response.text();
+  const candidate = result.response.candidates?.[0];
+  const finishReason = (candidate?.finishReason ?? 'UNKNOWN') as GeminiFinishReason;
+  const ratings = candidate?.safetyRatings ?? [];
+  const safetyBlocked =
+    finishReason === 'SAFETY' ||
+    ratings.some((r) => r.probability === 'HIGH' || r.probability === 'MEDIUM');
+
+  // .text() throws if the response was blocked — guard it so callers can
+  // make a sensible fallback decision instead of crashing.
+  let text = '';
+  try {
+    text = result.response.text();
+  } catch {
+    text = '';
+  }
+
+  return { text, finishReason, safetyBlocked };
 }
 
 export async function* streamGemini(args: GeminiArgs): AsyncIterable<string> {

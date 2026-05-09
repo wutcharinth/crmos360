@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
-import { generate, type LlmMessage } from '@crmos360/ai';
+import { generateDetailed, type LlmMessage } from '@crmos360/ai';
 import { getScenarioPrompt } from '@/lib/demo/scenario-prompts';
 import { isScenarioId } from '@/lib/demo/scenarios';
 import { checkRateLimit, accrueSpend } from '@/lib/concierge/rate-limit';
@@ -128,14 +128,34 @@ export async function POST(req: Request) {
   messages.push({ role: 'user', content: parsed.data.message });
 
   try {
-    const res = await generate({
+    // First attempt: generous headroom for Thai (more chars per token).
+    let res = await generateDetailed({
       messages,
       temperature: 0.5,
-      // 600 gives Thai replies room to land at 3-6 lines without truncation;
-      // Thai chars take more tokens than Latin so 350 was clipping mid-sentence.
-      maxTokens: 600,
+      maxTokens: 1024,
     });
-    const reply = res.text.trim();
+
+    // Retry once with more headroom if the model self-truncated.
+    if (res.finishReason === 'max_tokens') {
+      res = await generateDetailed({
+        messages,
+        temperature: 0.5,
+        maxTokens: 1800,
+      });
+    }
+
+    let reply = res.text.trim();
+
+    // Safety / unknown finish with empty body → graceful fallback so the
+    // user never sees a blank or partial bubble.
+    if (!reply || res.safetyBlocked) {
+      reply =
+        'ขออนุญาตเช็คข้อมูลให้สักครู่นะคะ ขอเป็นเรื่องอื่นที่เกี่ยวกับสินค้าหรือคำสั่งซื้อก่อนนะคะ';
+    } else if (res.finishReason === 'max_tokens' && !endsCleanly(reply)) {
+      // Even after retry, strip the dangling clause so the bubble doesn't
+      // end mid-word. Keeps the paragraph break intact for readability.
+      reply = trimDanglingClause(reply);
+    }
 
     const tokensIn = messages.reduce((sum, m) => sum + estimateTokens(m.content), 0);
     const tokensOut = estimateTokens(reply);
@@ -145,16 +165,49 @@ export async function POST(req: Request) {
     );
     accrueSpend(cost);
 
-    return NextResponse.json({ ok: true, reply, costMicros: cost });
+    return NextResponse.json({
+      ok: true,
+      reply,
+      costMicros: cost,
+      finishReason: res.finishReason,
+    });
   } catch (err) {
     console.error('demo scenario LLM error', err);
     return NextResponse.json(
       {
         ok: false,
         reply:
-          'Sorry, I had trouble reaching the model just now. Please try again.',
+          'ขอโทษนะคะ ระบบติดต่อ AI ไม่ได้ในขณะนี้ ลองอีกครั้งใน 1-2 นาทีค่ะ',
       },
       { status: 500 },
     );
   }
+}
+
+/** True if the text ends with a sentence-terminator or a complete Thai phrase ending. */
+function endsCleanly(s: string): boolean {
+  const last = s.trim().slice(-1);
+  // Latin punctuation + ค่ะ/ครับ are common Thai sentence endings handled
+  // upstream; here we just guard against ending mid-word.
+  return /[.!?…ๆ"')\]]$|ค่ะ$|ครับ$|นะคะ$|นะครับ$/u.test(s.trim());
+}
+
+/** Drop the trailing fragment after the last paragraph break or terminator. */
+function trimDanglingClause(s: string): string {
+  const trimmed = s.trim();
+  // Find the last sentence boundary.
+  const lastTerminator = Math.max(
+    trimmed.lastIndexOf('。'),
+    trimmed.lastIndexOf('.'),
+    trimmed.lastIndexOf('!'),
+    trimmed.lastIndexOf('?'),
+    trimmed.lastIndexOf('ค่ะ'),
+    trimmed.lastIndexOf('ครับ'),
+  );
+  if (lastTerminator > Math.floor(trimmed.length * 0.4)) {
+    // Cut after the terminator (+ matched suffix). Heuristic suffix length 3 (e.g. "ค่ะ").
+    const suffixLen = trimmed[lastTerminator] === 'ค' || trimmed[lastTerminator] === 'ค' ? 2 : 0;
+    return trimmed.slice(0, lastTerminator + 1 + suffixLen).trim();
+  }
+  return trimmed;
 }

@@ -3,8 +3,15 @@
  * Phase 1: Gemini 2.5 Flash primary, Claude Haiku 4.5 fallback.
  */
 
-import { generateGemini, streamGemini } from './providers/gemini';
+import {
+  generateGemini,
+  generateGeminiDetailed,
+  streamGemini,
+  type GeminiFinishReason,
+} from './providers/gemini';
 import { generateClaude, streamClaude } from './providers/anthropic';
+
+export type FinishReason = 'stop' | 'max_tokens' | 'safety' | 'other';
 
 export type LlmRole = 'system' | 'user' | 'assistant';
 
@@ -47,6 +54,50 @@ export async function generate(req: LlmRequest): Promise<LlmResponse> {
       : await generateClaude({ ...req, model });
 
   return { text, model, latencyMs: Date.now() - start };
+}
+
+export interface LlmDetailedResponse extends LlmResponse {
+  finishReason: FinishReason;
+  safetyBlocked: boolean;
+}
+
+function mapGeminiReason(r: GeminiFinishReason): FinishReason {
+  if (r === 'STOP') return 'stop';
+  if (r === 'MAX_TOKENS') return 'max_tokens';
+  if (r === 'SAFETY' || r === 'RECITATION') return 'safety';
+  return 'other';
+}
+
+/**
+ * generate() that returns finish-reason metadata. Used by the demo
+ * playground so it can detect MAX_TOKENS / SAFETY truncation and
+ * either retry with more headroom or surface a graceful fallback.
+ */
+export async function generateDetailed(req: LlmRequest): Promise<LlmDetailedResponse> {
+  const provider = req.provider ?? 'gemini';
+  const model = req.model ?? DEFAULTS[provider];
+  const start = Date.now();
+
+  if (provider === 'gemini') {
+    const r = await generateGeminiDetailed({ ...req, model });
+    return {
+      text: r.text,
+      model,
+      latencyMs: Date.now() - start,
+      finishReason: mapGeminiReason(r.finishReason),
+      safetyBlocked: r.safetyBlocked,
+    };
+  }
+
+  const text = await generateClaude({ ...req, model });
+  return {
+    text,
+    model,
+    latencyMs: Date.now() - start,
+    // Anthropic provider doesn't surface finish reason yet; assume stop.
+    finishReason: 'stop',
+    safetyBlocked: false,
+  };
 }
 
 export async function* stream(req: LlmRequest): AsyncIterable<string> {

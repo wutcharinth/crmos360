@@ -49,7 +49,7 @@ export default function DemoPage() {
                 Skip to playground
               </Link>
               <span className="font-mono text-[10px] uppercase tracking-widest text-mute">
-                {walkthroughLabel} scripted · 6 turns interactive · no signup
+                {walkthroughLabel} scripted · 9 industries interactive · no signup
               </span>
             </div>
           </div>
@@ -71,16 +71,17 @@ export default function DemoPage() {
         {/* Playground */}
         <section id="playground" className="border-t border-hairline py-16">
           <div className="mx-auto w-[min(1240px,calc(100%-48px))]">
-            <p className="label-mono">Playground · 5 live ecommerce stores</p>
+            <p className="label-mono">Playground · 9 live verticals</p>
             <h2 className="display-md mt-3 max-w-[24ch]">
               Pick a category. Ask the{' '}
-              <em className="not-italic accent-word whitespace-nowrap">store&rsquo;s AI</em> anything.
+              <em className="not-italic accent-word whitespace-nowrap">brand&rsquo;s AI</em> anything.
             </h2>
             <p className="lead mt-4 max-w-[60ch]">
-              Each tab is a different ecommerce category — beauty, fashion, food, electronics,
-              supplements — with its own catalog, policies, and the customer-service rules that
-              category actually needs. The AI roleplays as that store&rsquo;s agent so you can
-              feel how it handles each industry&rsquo;s real challenges.
+              Nine industries — beauty, fashion, food, electronics, supplements, hotel, education,
+              real estate, fitness — each with its own catalog, policies, and the &ldquo;what we
+              answer / what we escalate&rdquo; rules that vertical actually needs. The AI
+              roleplays as that brand&rsquo;s agent so you can feel how it handles
+              industry-specific challenges.
             </p>
             <div className="mt-10">
               <ScenarioPlayground />

@@ -65,5 +65,34 @@ export function CategoryIcon({
           <path d="M5 19c2-4 5-7 9-9" />
         </svg>
       );
+    case 'bed':
+      return (
+        <svg {...props}>
+          <path d="M3 18v-6a2 2 0 012-2h14a2 2 0 012 2v6" />
+          <path d="M3 18h18M3 14h18" />
+          <path d="M7 10V8a1 1 0 011-1h3a1 1 0 011 1v2" />
+        </svg>
+      );
+    case 'book':
+      return (
+        <svg {...props}>
+          <path d="M5 4h11a2 2 0 012 2v14H7a2 2 0 01-2-2V4z" />
+          <path d="M5 18h13" />
+          <path d="M9 8h6" />
+        </svg>
+      );
+    case 'home':
+      return (
+        <svg {...props}>
+          <path d="M3 11l9-7 9 7v9a1 1 0 01-1 1h-5v-6h-6v6H4a1 1 0 01-1-1v-9z" />
+        </svg>
+      );
+    case 'dumbbell':
+      return (
+        <svg {...props}>
+          <path d="M5 8v8M3 10v4M19 8v8M21 10v4" />
+          <path d="M5 12h14" />
+        </svg>
+      );
   }
 }
