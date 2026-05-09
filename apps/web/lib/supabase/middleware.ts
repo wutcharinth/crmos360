@@ -48,7 +48,11 @@ export async function updateSession(request: NextRequest) {
     pathname === '/' ||
     isAuthRoute ||
     isApiRoute ||
-    pathname.startsWith('/invite');
+    pathname.startsWith('/invite') ||
+    pathname.startsWith('/pricing') ||
+    pathname.startsWith('/for/') ||
+    pathname.startsWith('/demo') ||
+    pathname.startsWith('/dev/');
 
   if (!user && !isPublicRoute) {
     const url = request.nextUrl.clone();
