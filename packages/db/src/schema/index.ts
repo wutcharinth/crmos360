@@ -381,6 +381,83 @@ export const auditLogs = pgTable(
   ],
 ).enableRLS();
 
+// --- lessons ---
+// AI-proposed generalizable patterns drawn from how the team edits
+// AI-suggested replies. Approved lessons can be promoted into
+// Configuration Advisor rules.
+
+export const lessons = pgTable(
+  'lessons',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    orgId: uuid('org_id')
+      .notNull()
+      .references(() => organizations.id, { onDelete: 'cascade' }),
+    sourceConversationId: uuid('source_conversation_id').references(
+      () => conversations.id,
+      { onDelete: 'set null' },
+    ),
+    sourceMessagePairAiId: uuid('source_message_pair_ai_id').references(
+      () => messages.id,
+      { onDelete: 'set null' },
+    ),
+    sourceMessagePairHumanId: uuid('source_message_pair_human_id').references(
+      () => messages.id,
+      { onDelete: 'set null' },
+    ),
+    statement: text('statement').notNull(),
+    reasoning: text('reasoning').notNull(),
+    embedding: vector('embedding', { dimensions: 768 }),
+    suggestedRule: jsonb('suggested_rule_jsonb'),
+    // 'pending' | 'approved' | 'rejected' | 'superseded'
+    status: text('status').notNull().default('pending'),
+    approvedByUserId: uuid('approved_by_user_id').references(() => authUsers.id, {
+      onDelete: 'set null',
+    }),
+    approvedAt: timestamp('approved_at', { withTimezone: true }),
+    rejectedAt: timestamp('rejected_at', { withTimezone: true }),
+    createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+  },
+  (t) => [
+    index('lessons_org_status_idx').on(t.orgId, t.status, t.createdAt),
+    index('lessons_conversation_idx').on(t.sourceConversationId),
+    pgPolicy('lessons_org_member_select', {
+      for: 'select',
+      to: 'authenticated',
+      using: sql`public.is_org_member(${t.orgId})`,
+    }),
+    pgPolicy('lessons_org_admin_modify', {
+      for: 'all',
+      to: 'authenticated',
+      using: sql`public.is_org_admin(${t.orgId})`,
+      withCheck: sql`public.is_org_admin(${t.orgId})`,
+    }),
+  ],
+).enableRLS();
+
+export const lessonApplications = pgTable(
+  'lesson_applications',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    lessonId: uuid('lesson_id')
+      .notNull()
+      .references(() => lessons.id, { onDelete: 'cascade' }),
+    conversationId: uuid('conversation_id').references(() => conversations.id, {
+      onDelete: 'set null',
+    }),
+    messageId: uuid('message_id').references(() => messages.id, {
+      onDelete: 'set null',
+    }),
+    outcome: text('outcome').notNull().default('applied'),
+    appliedAt: timestamp('applied_at', { withTimezone: true }).defaultNow().notNull(),
+  },
+  (t) => [
+    index('lesson_applications_lesson_idx').on(t.lessonId, t.appliedAt),
+    index('lesson_applications_conversation_idx').on(t.conversationId),
+  ],
+).enableRLS();
+
 // --- prospect_threads ---
 // Marketing-site concierge chatbot. NOT scoped to an org (no tenant yet
 // at conversation time). Access is service-role + admin-allowlist only.
@@ -464,6 +541,10 @@ export type Message = typeof messages.$inferSelect;
 export type CustomerMemory = typeof customerMemory.$inferSelect;
 export type AiLog = typeof aiLogs.$inferSelect;
 export type AuditLog = typeof auditLogs.$inferSelect;
+export type Lesson = typeof lessons.$inferSelect;
+export type NewLesson = typeof lessons.$inferInsert;
+export type LessonApplication = typeof lessonApplications.$inferSelect;
+export type NewLessonApplication = typeof lessonApplications.$inferInsert;
 export type ProspectThread = typeof prospectThreads.$inferSelect;
 export type NewProspectThread = typeof prospectThreads.$inferInsert;
 export type ProspectMessage = typeof prospectMessages.$inferSelect;
