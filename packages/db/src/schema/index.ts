@@ -381,6 +381,79 @@ export const auditLogs = pgTable(
   ],
 ).enableRLS();
 
+// --- prospect_threads ---
+// Marketing-site concierge chatbot. NOT scoped to an org (no tenant yet
+// at conversation time). Access is service-role + admin-allowlist only.
+
+export const prospectThreads = pgTable(
+  'prospect_threads',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    sessionId: text('session_id').notNull().unique(),
+    email: text('email'),
+    name: text('name'),
+    vertical: text('vertical'),
+    status: text('status').notNull().default('open'),
+    utmSource: text('utm_source'),
+    userAgent: text('user_agent'),
+    createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+    lastMessageAt: timestamp('last_message_at', { withTimezone: true }).defaultNow().notNull(),
+  },
+  (t) => [
+    index('prospect_threads_session_idx').on(t.sessionId),
+    index('prospect_threads_created_idx').on(t.createdAt),
+    index('prospect_threads_status_idx').on(t.status, t.lastMessageAt),
+  ],
+);
+
+export const prospectMessages = pgTable(
+  'prospect_messages',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    threadId: uuid('thread_id')
+      .notNull()
+      .references(() => prospectThreads.id, { onDelete: 'cascade' }),
+    direction: text('direction').notNull(), // 'in' | 'out'
+    body: text('body').notNull(),
+    aiGenerated: boolean('ai_generated').notNull().default(false),
+    tokensInput: integer('tokens_input'),
+    tokensOutput: integer('tokens_output'),
+    costMicros: integer('cost_micros'),
+    flagged: text('flagged'), // 'jailbreak' | 'pii' | 'toxic' | NULL
+    createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+  },
+  (t) => [index('prospect_messages_thread_idx').on(t.threadId, t.createdAt)],
+);
+
+// --- llm_usage ---
+// Cost ledger across every Gemini / Claude call. Scoped optionally to
+// an org (in-product features) or NULL (marketing concierge).
+
+export const llmUsage = pgTable(
+  'llm_usage',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    orgId: uuid('org_id').references(() => organizations.id, { onDelete: 'cascade' }),
+    feature: text('feature').notNull(),
+    model: text('model').notNull(),
+    tokensInput: integer('tokens_input').notNull().default(0),
+    tokensOutput: integer('tokens_output').notNull().default(0),
+    costMicros: integer('cost_micros').notNull().default(0),
+    refType: text('ref_type'),
+    refId: text('ref_id'),
+    createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+  },
+  (t) => [
+    index('llm_usage_created_idx').on(t.createdAt),
+    index('llm_usage_feature_idx').on(t.feature, t.createdAt),
+    pgPolicy('llm_usage_org_admin_select', {
+      for: 'select',
+      to: 'authenticated',
+      using: sql`${t.orgId} IS NOT NULL AND public.is_org_admin(${t.orgId})`,
+    }),
+  ],
+).enableRLS();
+
 // Inferred types for app code.
 export type Organization = typeof organizations.$inferSelect;
 export type NewOrganization = typeof organizations.$inferInsert;
@@ -391,3 +464,9 @@ export type Message = typeof messages.$inferSelect;
 export type CustomerMemory = typeof customerMemory.$inferSelect;
 export type AiLog = typeof aiLogs.$inferSelect;
 export type AuditLog = typeof auditLogs.$inferSelect;
+export type ProspectThread = typeof prospectThreads.$inferSelect;
+export type NewProspectThread = typeof prospectThreads.$inferInsert;
+export type ProspectMessage = typeof prospectMessages.$inferSelect;
+export type NewProspectMessage = typeof prospectMessages.$inferInsert;
+export type LlmUsageEntry = typeof llmUsage.$inferSelect;
+export type NewLlmUsageEntry = typeof llmUsage.$inferInsert;
