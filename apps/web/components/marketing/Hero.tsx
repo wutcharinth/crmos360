@@ -23,20 +23,20 @@ export function Hero() {
 
           <h1 className="display-xl text-ink">
             <span className="th-only">
-              AI ตอบเองเมื่อ
+              AI ตอบเองเมื่อ{' '}
+              <em className="not-italic accent-word">มั่นใจ.</em>
               <br />
-              <em className="not-italic font-semibold text-warm">มั่นใจ.</em>
-              <br />
-              ส่งให้คุณรีวิวเมื่อ<em className="not-italic font-semibold text-warm">ต้องคิด.</em>
+              <span className="display-light">
+                ส่งให้คุณรีวิวเมื่อต้องคิด.
+              </span>
             </span>
             <span className="en-only">
               AI replies when{' '}
-              <em className="not-italic font-semibold text-warm">it&rsquo;s sure.</em>
+              <em className="not-italic accent-word">confident.</em>
               <br />
-              Drafts when{' '}
-              <em className="not-italic font-semibold text-warm">it&rsquo;s not.</em>
-              <br />
-              Escalates when it matters.
+              <span className="display-light">
+                Sends to you when it should think.
+              </span>
             </span>
           </h1>
 

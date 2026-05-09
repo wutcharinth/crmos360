@@ -61,10 +61,13 @@ const config: Config = {
         'warm-soft': 'hsl(var(--warm-soft))',
         mint:        'hsl(var(--mint))',
         'mint-soft': 'hsl(var(--mint-soft))',
+        amber:       'hsl(var(--amber))',
+        'amber-soft':'hsl(var(--amber-soft))',
         rose:        'hsl(var(--rose))',
       },
       fontFamily: {
-        sans: ['var(--font-sans)', 'ui-sans-serif', '-apple-system', 'system-ui', 'sans-serif'],
+        sans: ['var(--font-sans)', 'var(--font-thai)', 'ui-sans-serif', '-apple-system', 'system-ui', 'sans-serif'],
+        display: ['var(--font-display)', 'var(--font-sans)', 'var(--font-thai)', 'ui-sans-serif', 'sans-serif'],
         thai: ['var(--font-thai)', 'var(--font-sans)', 'ui-sans-serif', 'sans-serif'],
         mono: ['var(--font-mono)', 'ui-monospace', 'SFMono-Regular', 'Menlo', 'monospace'],
       },
@@ -85,9 +88,9 @@ const config: Config = {
         // Soft card lift used by marketing cards
         soft:
           '0 4px 16px rgba(20,24,26,0.04)',
-        // CTA button hover lift
+        // CTA button hover lift — tinted with the indigo accent
         cta:
-          '0 12px 28px rgba(184,99,42,0.22)',
+          '0 12px 28px rgba(79, 70, 229, 0.22)',
       },
       keyframes: {
         pulse: {

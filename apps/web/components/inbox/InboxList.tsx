@@ -162,7 +162,7 @@ function Pill({
 }) {
   const map = {
     auto: 'bg-mint-soft text-mint',
-    approve: 'bg-warm-soft text-warm',
+    approve: 'bg-amber-soft text-amber',
     escalate: 'bg-[hsl(var(--rose)/0.1)] text-rose',
     growth: 'bg-warm-soft text-warm',
     neutral: 'bg-paper-2 text-ink-2',

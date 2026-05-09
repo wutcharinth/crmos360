@@ -487,7 +487,7 @@ function modePillClass(m: Mode, active: Mode) {
     return 'border-hairline bg-paper-2 text-ink-2 hover:bg-paper-3';
   }
   if (m === 'auto') return 'border-mint/30 bg-mint-soft text-mint';
-  if (m === 'approve') return 'border-warm/30 bg-warm-soft text-warm';
+  if (m === 'approve') return 'border-amber/30 bg-amber-soft text-amber';
   return 'border-rose/30 bg-[hsl(var(--rose)/0.08)] text-rose';
 }
 

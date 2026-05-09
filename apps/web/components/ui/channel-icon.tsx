@@ -180,27 +180,37 @@ function ShopeeBrand(props: SVGProps<SVGSVGElement>) {
 }
 
 function LazadaBrand(props: SVGProps<SVGSVGElement>) {
-  // Lazada uses a red-to-orange identity. Single solid color reads cleanly
-  // at small sizes; a stylized cart silhouette stands in for the wordmark.
+  // Lazada uses a deep-blue → magenta gradient identity (per the FlowAIOS
+  // design). A simplified cart silhouette stands in for the wordmark since
+  // the actual Lazada logo is wordmark-only.
+  const gid = useId();
   return (
     <svg viewBox="0 0 20 20" {...props}>
-      <rect width="20" height="20" rx="4.5" fill="#0F1A6F" />
+      <defs>
+        <linearGradient id={`lz-${gid}`} x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stopColor="#0F146E" />
+          <stop offset="1" stopColor="#F0006A" />
+        </linearGradient>
+      </defs>
+      <rect width="20" height="20" rx="4.5" fill={`url(#lz-${gid})`} />
       <path
         d="M5.5 6.5h2.2L8.4 13a.4.4 0 0 0 .4.3h5.7v1H8.3a1.4 1.4 0 0 1-1.4-1.2L6.2 7.5H5.5v-1Zm3.6 1.5h6l-.7 4.2a.4.4 0 0 1-.4.3h-4.2a.4.4 0 0 1-.4-.3l-.3-4.2Z"
-        fill="#FF6F00"
+        fill="#fff"
       />
-      <circle cx="9.4" cy="14.9" r=".9" fill="#FF6F00" />
-      <circle cx="13.6" cy="14.9" r=".9" fill="#FF6F00" />
+      <circle cx="9.4" cy="14.9" r=".9" fill="#fff" />
+      <circle cx="13.6" cy="14.9" r=".9" fill="#fff" />
     </svg>
   );
 }
 
 function TiktokBrand(props: SVGProps<SVGSVGElement>) {
   // TikTok's chromatic-shadow effect is simulated with a cyan + magenta
-  // offset; final note in white sits on top.
+  // offset; final note in white sits on top. Background is deep slate
+  // (#0B1220) per the FlowAIOS design — pure black would clash with
+  // the slate-on-paper hierarchy of the rest of the surface.
   return (
     <svg viewBox="0 0 20 20" {...props}>
-      <rect width="20" height="20" rx="4.5" fill="#000" />
+      <rect width="20" height="20" rx="4.5" fill="#0B1220" />
       <path
         d="M11.7 4v7.7a2.4 2.4 0 1 1-2.1-2.4v1.8a.7.7 0 1 0 .6.7V4h1.5Z"
         fill="#25F4EE"
@@ -276,23 +286,24 @@ function InstagramBrand(props: SVGProps<SVGSVGElement>) {
 }
 
 function EmailBrand(props: SVGProps<SVGSVGElement>) {
-  // Email is a protocol, not a brand — keep neutral. Soft grey square
-  // with a white envelope reads as "generic mail" everywhere.
+  // Email is a protocol, not a brand. Slate-600 (#475569) tile per the
+  // FlowAIOS design — keeps the strip cohesive when sitting next to the
+  // colored channel marks.
   return (
     <svg viewBox="0 0 20 20" {...props}>
-      <rect width="20" height="20" rx="4.5" fill="#5B6470" />
+      <rect width="20" height="20" rx="4.5" fill="#475569" />
       <path
         d="M4.5 7.5h11v6.5a.5.5 0 0 1-.5.5H5a.5.5 0 0 1-.5-.5v-6.5Z"
         fill="#fff"
       />
       <path
         d="m4.5 7.5 5.5 4 5.5-4-5.5-1.5-5.5 1.5Z"
-        fill="#E2E5EA"
+        fill="#E2E8F0"
       />
       <path
         d="m4.7 7.7 5.3 3.8 5.3-3.8"
         fill="none"
-        stroke="#5B6470"
+        stroke="#475569"
         strokeWidth=".7"
       />
     </svg>

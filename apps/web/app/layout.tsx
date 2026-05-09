@@ -1,5 +1,10 @@
 import type { Metadata, Viewport } from 'next';
-import { Inter, JetBrains_Mono, Noto_Sans_Thai } from 'next/font/google';
+import {
+  Inter,
+  Inter_Tight,
+  JetBrains_Mono,
+  IBM_Plex_Sans_Thai_Looped,
+} from 'next/font/google';
 import { cookies } from 'next/headers';
 import { SkinProvider } from '@/components/skin-provider';
 import { SKIN_COOKIE_NAME, readSkinCookie } from '@/lib/skin-cookie';
@@ -11,14 +16,23 @@ const inter = Inter({
   subsets: ['latin'],
   variable: '--font-sans',
   display: 'swap',
-  weight: ['300', '400', '500', '600', '700'],
+  weight: ['400', '500', '600', '700'],
 });
 
-const notoSansThai = Noto_Sans_Thai({
+// Inter Tight is the display face — used for hero headlines and section
+// titles. Slightly tighter letterforms than regular Inter.
+const interTight = Inter_Tight({
+  subsets: ['latin'],
+  variable: '--font-display',
+  display: 'swap',
+  weight: ['500', '600', '700'],
+});
+
+const plexThai = IBM_Plex_Sans_Thai_Looped({
   subsets: ['thai'],
   variable: '--font-thai',
   display: 'swap',
-  weight: ['300', '400', '500', '600', '700'],
+  weight: ['400', '500', '600', '700'],
 });
 
 const jetbrainsMono = JetBrains_Mono({
@@ -35,8 +49,8 @@ export const viewport: Viewport = {
   initialScale: 1,
   viewportFit: 'cover',
   themeColor: [
-    { media: '(prefers-color-scheme: light)', color: '#FAFAF7' },
-    { media: '(prefers-color-scheme: dark)', color: '#0E1116' },
+    { media: '(prefers-color-scheme: light)', color: '#FAFAF9' },
+    { media: '(prefers-color-scheme: dark)', color: '#0B1220' },
   ],
 };
 
@@ -80,7 +94,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   return (
     <html
       lang={initialLang}
-      className={`${inter.variable} ${notoSansThai.variable} ${jetbrainsMono.variable} ${initialClass}`}
+      className={`${inter.variable} ${interTight.variable} ${plexThai.variable} ${jetbrainsMono.variable} ${initialClass}`}
       suppressHydrationWarning
     >
       <body className="font-sans antialiased">

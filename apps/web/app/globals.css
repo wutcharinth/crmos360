@@ -12,21 +12,31 @@
  */
 @layer base {
   :root {
-    /* ── Sunlit Cockpit palette (HSL space-separated for hsl(var(--x))) ── */
-    --paper:       60 23% 97%;     /* #FAFAF7 */
-    --paper-2:     51 21% 94%;     /* #F2F1EB */
-    --paper-3:     47 16% 89%;     /* #E8E6DF */
-    --ink:         200 13% 9%;     /* #14181A */
-    --ink-2:       203 5% 31%;     /* #4A4F52 */
-    --mute:        90 3% 53%;      /* #888B85 */
-    --hairline:    48 13% 84%;     /* #DCDAD2 */
-    --hairline-2:  47 8% 64%;      /* #A9A69B */
-    --warm:        24 63% 44%;     /* #B8632A */
-    --warm-2:      25 62% 53%;     /* #D27A3D */
-    --warm-soft:   32 50% 90%;     /* #F2E6D8 */
-    --mint:        160 52% 36%;    /* #2C8A6B */
-    --mint-soft:   148 33% 91%;    /* #E1F0E8 */
-    --rose:        357 44% 50%;    /* #B8484E */
+    /*
+     * Bright optimistic SaaS palette — slate ink on near-white paper with
+     * an indigo accent. Lifted directly from the FlowAIOS hi-fi prototype
+     * (api.anthropic.com/v1/design/h/...). The token NAMES are retained
+     * from the previous Sunlit Cockpit palette so the 90+ components that
+     * reference --warm / --paper / etc. don't need touching — only their
+     * VALUES change. "warm" no longer means warm orange; it's the brand
+     * accent (currently indigo).
+     */
+    --paper:       60 5% 98%;      /* #FAFAF9 — near-white */
+    --paper-2:     60 5% 95%;      /* #F4F4F2 — soft tint */
+    --paper-3:     226 100% 96%;   /* #EEF2FF — indigo-50 */
+    --ink:         220 49% 8%;     /* #0B1220 — deep slate */
+    --ink-2:       215 19% 35%;    /* #475569 — slate-600 */
+    --mute:        215 16% 47%;    /* #64748B — slate-500 */
+    --hairline:    214 32% 91%;    /* #E2E8F0 — slate-200 */
+    --hairline-2:  213 27% 84%;    /* #CBD5E1 — slate-300 */
+    --warm:        244 76% 59%;    /* #4F46E5 — indigo-600 (brand accent) */
+    --warm-2:      238 84% 67%;    /* #6366F1 — indigo-500 */
+    --warm-soft:   226 100% 96%;   /* #EEF2FF — indigo-50 (active bg) */
+    --mint:        161 94% 30%;    /* #059669 — emerald-600 */
+    --mint-soft:   152 81% 96%;    /* #ECFDF5 */
+    --amber:       38 93% 35%;     /* #B45309 — used for Approval pills */
+    --amber-soft:  48 100% 96%;    /* #FFFBEB */
+    --rose:        348 83% 41%;    /* #BE123C */
 
     /* ── shadcn variables, mapped to Sunlit Cockpit ── */
     --background:           var(--paper);
@@ -98,7 +108,8 @@
   html { scroll-behavior: smooth; }
   body {
     @apply bg-background text-foreground;
-    font-family: var(--font-sans), ui-sans-serif, -apple-system, system-ui, sans-serif;
+    font-family: var(--font-sans), 'IBM Plex Sans Thai Looped', ui-sans-serif,
+      -apple-system, system-ui, sans-serif;
     font-feature-settings: 'ss01', 'cv11';
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
@@ -111,7 +122,7 @@
   /* Use Thai font as fallback when text contains Thai characters; both languages
      get rendered with their best-suited face within the same paragraph. */
   :lang(th), [lang="th"] {
-    font-family: var(--font-sans), var(--font-thai), ui-sans-serif, sans-serif;
+    font-family: var(--font-thai), var(--font-sans), ui-sans-serif, sans-serif;
   }
 
   /* Bilingual single-DOM pattern (ported from JongToh).
@@ -161,28 +172,49 @@
     font-weight: 500;
   }
   .display-xl {
-    font-size: clamp(40px, 5.6vw, 78px);
+    font-family: var(--font-display), var(--font-sans);
+    font-size: clamp(40px, 5.4vw, 76px);
     font-weight: 600;
-    letter-spacing: -0.028em;
-    line-height: 1.04;
+    letter-spacing: -0.035em;
+    line-height: 1.02;
   }
   .display-lg {
-    font-size: clamp(32px, 4.4vw, 56px);
+    font-family: var(--font-display), var(--font-sans);
+    font-size: clamp(32px, 3.6vw, 52px);
     font-weight: 600;
-    letter-spacing: -0.022em;
+    letter-spacing: -0.03em;
     line-height: 1.06;
   }
   .display-md {
-    font-size: clamp(28px, 3.4vw, 44px);
-    font-weight: 500;
-    letter-spacing: -0.018em;
-    line-height: 1.1;
+    font-family: var(--font-display), var(--font-sans);
+    font-size: clamp(22px, 1.8vw, 28px);
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    line-height: 1.15;
   }
   .lead {
     font-size: 16px;
     line-height: 1.65;
     color: hsl(var(--ink-2));
     max-width: 56ch;
+  }
+  /*
+   * Gradient text emphasis for hero highlight word ("confident.", "มั่นใจ.").
+   * Lifted from the FlowAIOS landing prototype — indigo to cyan at 120deg.
+   * The user has explicitly asked for the design to match exactly, so this
+   * overrides the no-gradient-text default.
+   */
+  .accent-word {
+    background: linear-gradient(120deg, hsl(var(--warm)) 0%, #06B6D4 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    font-weight: 600;
+  }
+  /* De-emphasized supporting clause in hero — slightly lighter slate. */
+  .display-light {
+    color: hsl(var(--mute));
+    font-weight: 500;
   }
   /* Subtle dotted grid behind the inbox specimen */
   .grid-bg {

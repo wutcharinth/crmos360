@@ -167,10 +167,16 @@ export function InboxSidebar({
 function BrandMark() {
   return (
     <svg viewBox="0 0 28 28" aria-hidden className="h-[24px] w-[24px] shrink-0">
-      <rect width="28" height="28" rx="7" className="fill-warm" />
+      <defs>
+        <linearGradient id="inbox-logo-grad" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stopColor="#4F46E5" />
+          <stop offset="1" stopColor="#818CF8" />
+        </linearGradient>
+      </defs>
+      <rect width="28" height="28" rx="7" fill="url(#inbox-logo-grad)" />
       <path
         d="M10 7 H20 V9.6 H12.5 V13.4 H18 V16 H12.5 V21 H10 Z"
-        className="fill-paper"
+        fill="#fff"
       />
     </svg>
   );
