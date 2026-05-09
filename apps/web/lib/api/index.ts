@@ -26,7 +26,7 @@ import type {
   MockAuditLogEntry,
 } from '../mocks/types';
 
-export const useMocks = (): boolean => process.env.NEXT_PUBLIC_USE_MOCKS === '1';
+export const mocksEnabled = (): boolean => process.env.NEXT_PUBLIC_USE_MOCKS === '1';
 
 const notImplemented = (surface: string): never => {
   throw new Error(
@@ -41,7 +41,7 @@ export async function listConversations(filter?: {
   channel?: string;
   vertical?: string;
 }): Promise<MockConversation[]> {
-  if (!useMocks()) return notImplemented('conversations');
+  if (!mocksEnabled()) return notImplemented('conversations');
   let rows = [...mockConversations];
   if (filter?.status && filter.status !== 'all') {
     rows = rows.filter((c) => c.status === filter.status);
@@ -57,19 +57,19 @@ export async function listConversations(filter?: {
 }
 
 export async function getConversation(id: string): Promise<MockConversation | null> {
-  if (!useMocks()) return notImplemented('conversations');
+  if (!mocksEnabled()) return notImplemented('conversations');
   return findConversation(id) ?? null;
 }
 
 // — Customers ——————————————————————————————————————————————————————————————
 
 export async function getCustomer(id: string): Promise<MockCustomer | null> {
-  if (!useMocks()) return notImplemented('customers');
+  if (!mocksEnabled()) return notImplemented('customers');
   return findCustomer(id) ?? null;
 }
 
 export async function listCustomers(): Promise<MockCustomer[]> {
-  if (!useMocks()) return notImplemented('customers');
+  if (!mocksEnabled()) return notImplemented('customers');
   return [...mockCustomers].sort((a, b) => a.name.localeCompare(b.name, 'th'));
 }
 
@@ -103,7 +103,7 @@ function lessonRowToMock(row: LessonRow, approverName: string | null): MockLesso
 }
 
 export async function listLessons(status?: 'pending' | 'approved' | 'rejected'): Promise<MockLesson[]> {
-  if (useMocks()) {
+  if (mocksEnabled()) {
     let rows = [...mockLessons];
     if (status) rows = rows.filter((l) => l.status === status);
     rows.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
@@ -129,7 +129,7 @@ export async function listLessons(status?: 'pending' | 'approved' | 'rejected'):
 }
 
 export async function getLesson(id: string): Promise<MockLesson | null> {
-  if (useMocks()) return findLesson(id) ?? null;
+  if (mocksEnabled()) return findLesson(id) ?? null;
 
   const { createAdminClient } = await import('@/lib/supabase/admin');
   const { requireMembership } = await import('@/lib/auth/current-user');
@@ -150,7 +150,7 @@ export async function getLesson(id: string): Promise<MockLesson | null> {
 // — Dashboard ——————————————————————————————————————————————————————————————
 
 export async function getDashboardMetrics(): Promise<MockDashboardMetrics> {
-  if (useMocks()) return mockDashboard;
+  if (mocksEnabled()) return mockDashboard;
 
   const { requireMembership } = await import('@/lib/auth/current-user');
   const { getOrgDashboard } = await import('@/lib/intelligence/compute');
@@ -161,7 +161,7 @@ export async function getDashboardMetrics(): Promise<MockDashboardMetrics> {
 // — Advisor rules ——————————————————————————————————————————————————————————————
 
 export async function listAdvisorRules(status?: 'pending' | 'active' | 'disabled'): Promise<MockAdvisorRule[]> {
-  if (!useMocks()) return notImplemented('advisor');
+  if (!mocksEnabled()) return notImplemented('advisor');
   let rows = [...mockRules];
   if (status) rows = rows.filter((r) => r.status === status);
   rows.sort((a, b) => b.appliedCount - a.appliedCount);
@@ -169,14 +169,14 @@ export async function listAdvisorRules(status?: 'pending' | 'active' | 'disabled
 }
 
 export async function getAdvisorRule(id: string): Promise<MockAdvisorRule | null> {
-  if (!useMocks()) return notImplemented('advisor');
+  if (!mocksEnabled()) return notImplemented('advisor');
   return findRule(id) ?? null;
 }
 
 // — Audit log ——————————————————————————————————————————————————————————————
 
 export async function listAuditLog(limit = 200): Promise<MockAuditLogEntry[]> {
-  if (!useMocks()) return notImplemented('audit');
+  if (!mocksEnabled()) return notImplemented('audit');
   return [...mockAudit]
     .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
     .slice(0, limit);

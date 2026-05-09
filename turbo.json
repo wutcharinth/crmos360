@@ -4,7 +4,24 @@
   "tasks": {
     "build": {
       "dependsOn": ["^build"],
-      "outputs": [".next/**", "!.next/cache/**", "dist/**"]
+      "outputs": [".next/**", "!.next/cache/**", "dist/**"],
+      "env": [
+        "DATABASE_URL",
+        "NEXT_PUBLIC_SUPABASE_URL",
+        "NEXT_PUBLIC_SUPABASE_ANON_KEY",
+        "SUPABASE_SERVICE_ROLE_KEY",
+        "NEXT_PUBLIC_APP_URL",
+        "GEMINI_API_KEY",
+        "ANTHROPIC_API_KEY",
+        "LINE_CHANNEL_SECRET",
+        "LINE_CHANNEL_ACCESS_TOKEN",
+        "ADMIN_EMAILS",
+        "ADMIN_DEV_PERMISSIVE",
+        "M15_ENABLED_DEFAULT",
+        "CONCIERGE_MODEL",
+        "CONCIERGE_MAX_TURNS",
+        "NEXT_PUBLIC_USE_MOCKS"
+      ]
     },
     "dev": {
       "cache": false,

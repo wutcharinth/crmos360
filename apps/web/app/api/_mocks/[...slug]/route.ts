@@ -10,7 +10,7 @@ import {
   listAdvisorRules,
   getAdvisorRule,
   listAuditLog,
-  useMocks,
+  mocksEnabled,
 } from '@/lib/api';
 
 /**
@@ -33,7 +33,7 @@ export async function GET(
   req: Request,
   { params }: { params: Promise<{ slug: string[] }> },
 ) {
-  if (!useMocks()) {
+  if (!mocksEnabled()) {
     return NextResponse.json({ error: 'mocks disabled' }, { status: 404 });
   }
 
