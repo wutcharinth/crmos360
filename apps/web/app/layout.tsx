@@ -1,4 +1,4 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import { Inter, JetBrains_Mono, Noto_Sans_Thai } from 'next/font/google';
 import { cookies } from 'next/headers';
 import { SkinProvider } from '@/components/skin-provider';
@@ -27,6 +27,18 @@ const jetbrainsMono = JetBrains_Mono({
   display: 'swap',
   weight: ['400', '500'],
 });
+
+// viewport-fit=cover is required for env(safe-area-inset-*) to return non-zero
+// values on iOS Safari (notch + home-indicator handling).
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  viewportFit: 'cover',
+  themeColor: [
+    { media: '(prefers-color-scheme: light)', color: '#FAFAF7' },
+    { media: '(prefers-color-scheme: dark)', color: '#0E1116' },
+  ],
+};
 
 export const metadata: Metadata = {
   title: 'FlowAIOS · AI OS สำหรับ Customer Operations',

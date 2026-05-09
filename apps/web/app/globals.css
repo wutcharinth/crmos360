@@ -104,6 +104,10 @@
     -moz-osx-font-smoothing: grayscale;
   }
   ::selection { background: hsl(var(--warm)); color: hsl(var(--paper)); }
+
+  /* Mobile baseline: prevent media from blowing past viewport width. */
+  img, video, svg, iframe { max-width: 100%; }
+  img, video { display: block; height: auto; }
   /* Use Thai font as fallback when text contains Thai characters; both languages
      get rendered with their best-suited face within the same paragraph. */
   :lang(th), [lang="th"] {

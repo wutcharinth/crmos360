@@ -174,13 +174,13 @@ export function Concierge() {
 
   return (
     <>
-      {/* Toggle button */}
+      {/* Toggle button — sits above the iOS home-indicator on mobile. */}
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
         aria-expanded={open}
         aria-label={open ? 'Close concierge' : 'Open concierge'}
-        className={`fixed bottom-6 left-6 z-30 inline-flex items-center gap-2 rounded-full border border-hairline bg-paper px-4 py-2.5 text-[13px] font-medium text-ink shadow-soft transition-all hover:-translate-y-0.5 hover:border-warm/40 ${
+        className={`fixed z-30 inline-flex items-center gap-2 rounded-full border border-hairline bg-paper px-4 py-2.5 text-[13px] font-medium text-ink shadow-soft transition-all hover:-translate-y-0.5 hover:border-warm/40 bottom-[max(16px,env(safe-area-inset-bottom))] left-4 sm:bottom-6 sm:left-6 ${
           open ? 'translate-y-1 opacity-0 pointer-events-none' : ''
         }`}
       >
@@ -191,18 +191,24 @@ export function Concierge() {
         Ask FlowAIOS
       </button>
 
-      {/* Panel */}
+      {/*
+        Panel.
+        - Mobile (<640px): full-bleed takeover. inset-0, no border-radius,
+          status-bar + home-indicator-aware padding via safe-area-inset.
+        - sm+ (640px+): 380px floating panel anchored bottom-left.
+        Pattern lifted from JongToh's sales-widget @media(max-width:520px) block.
+      */}
       <div
         role="dialog"
+        aria-modal={open}
         aria-label="FlowAIOS concierge"
         aria-hidden={!open}
-        className={`fixed bottom-6 left-6 z-40 flex w-[min(380px,calc(100vw-32px))] flex-col rounded-2xl border border-hairline bg-paper shadow-terminal transition-all duration-200 ease-out ${
+        className={`fixed inset-0 z-40 flex flex-col border-hairline bg-paper transition-all duration-200 ease-out sm:inset-auto sm:bottom-6 sm:left-6 sm:h-[600px] sm:max-h-[calc(100vh-48px)] sm:w-[min(380px,calc(100vw-32px))] sm:rounded-2xl sm:border sm:shadow-terminal ${
           open ? 'translate-y-0 opacity-100' : 'pointer-events-none translate-y-3 opacity-0'
         }`}
-        style={{ maxHeight: 'calc(100vh - 48px)', height: open ? '600px' : 'auto' }}
       >
-        {/* header */}
-        <header className="flex items-center justify-between gap-3 border-b border-hairline px-5 py-3.5">
+        {/* header — extra top padding on mobile clears the iOS notch. */}
+        <header className="flex items-center justify-between gap-3 border-b border-hairline px-5 pb-3.5 pt-[max(14px,env(safe-area-inset-top))] sm:pt-3.5">
           <div className="flex items-center gap-2.5">
             <span className="relative flex h-2 w-2">
               <span className="absolute inline-flex h-full w-full animate-pulse rounded-full bg-mint opacity-60" />
@@ -378,11 +384,16 @@ function ChatBody({
 
       <form
         onSubmit={onSubmit}
-        className="flex items-end gap-2 border-t border-hairline px-4 py-3"
+        className="flex items-end gap-2 border-t border-hairline px-4 pt-3 pb-[max(12px,env(safe-area-inset-bottom))] sm:pb-3"
       >
         <label htmlFor={inputId} className="sr-only">
           Message
         </label>
+        {/*
+          font-size: 16px on mobile prevents iOS Safari from auto-zooming the
+          page when the textarea gains focus. sm:text-[14px] restores the
+          tighter desktop scale.
+        */}
         <textarea
           ref={inputRef}
           id={inputId}
@@ -397,7 +408,7 @@ function ChatBody({
           rows={1}
           disabled={sending}
           placeholder="พิมพ์ข้อความ · type a message"
-          className="max-h-32 flex-1 resize-none rounded-md border border-hairline bg-paper px-3 py-2 text-[14px] text-ink placeholder:text-mute focus:border-warm focus:outline-none"
+          className="max-h-32 flex-1 resize-none rounded-md border border-hairline bg-paper px-3 py-2 text-[16px] text-ink placeholder:text-mute focus:border-warm focus:outline-none sm:text-[14px]"
         />
         <button
           type="submit"
@@ -452,7 +463,10 @@ function ContactForm({
   };
 
   return (
-    <form onSubmit={submit} className="flex-1 space-y-4 overflow-y-auto px-5 py-5">
+    <form
+      onSubmit={submit}
+      className="flex-1 space-y-4 overflow-y-auto px-5 pt-5 pb-[max(20px,env(safe-area-inset-bottom))] sm:pb-5"
+    >
       <div>
         <p className="label-mono">Contact the team</p>
         <p className="mt-2 text-[13px] leading-relaxed text-ink-2">
@@ -529,7 +543,7 @@ function Field({
           onChange={(e) => onChange(e.target.value)}
           placeholder={placeholder}
           rows={3}
-          className="mt-1.5 w-full resize-none rounded-md border border-hairline bg-paper px-3 py-2 text-[13.5px] text-ink placeholder:text-mute focus:border-warm focus:outline-none"
+          className="mt-1.5 w-full resize-none rounded-md border border-hairline bg-paper px-3 py-2 text-[16px] text-ink placeholder:text-mute focus:border-warm focus:outline-none sm:text-[13.5px]"
         />
       ) : (
         <input
@@ -537,7 +551,7 @@ function Field({
           value={value}
           onChange={(e) => onChange(e.target.value)}
           placeholder={placeholder}
-          className="mt-1.5 w-full rounded-md border border-hairline bg-paper px-3 py-2 text-[13.5px] text-ink placeholder:text-mute focus:border-warm focus:outline-none"
+          className="mt-1.5 w-full rounded-md border border-hairline bg-paper px-3 py-2 text-[16px] text-ink placeholder:text-mute focus:border-warm focus:outline-none sm:text-[13.5px]"
         />
       )}
     </label>
