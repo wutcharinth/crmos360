@@ -1,10 +1,19 @@
-import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { requireMembership } from '@/lib/auth/current-user';
 import { createAdminClient } from '@/lib/supabase/admin';
-import { ChannelBadge } from '@/components/app/channel-badge';
-import { HandoffCard } from '@/components/inbox/HandoffCard';
-import { ThreadView } from './thread-view';
+import type { ChannelKey } from '@/components/ui/channel-icon';
+import { InboxShell } from '@/components/inbox/InboxShell';
+import { InboxSidebar } from '@/components/inbox/InboxSidebar';
+import { InboxList } from '@/components/inbox/InboxList';
+import { InboxThreadView } from '@/components/inbox/InboxThreadView';
+import { InboxContextPane } from '@/components/inbox/InboxContextPane';
+import { loadInboxList } from '../_load';
+
+export const dynamic = 'force-dynamic';
+
+interface PageProps {
+  params: Promise<{ id: string }>;
+}
 
 interface MemoryRow {
   id: string;
@@ -13,66 +22,21 @@ interface MemoryRow {
   created_at: string;
 }
 
-function buildHandoffPayload(opts: {
-  customerName: string | null;
-  channel: string;
-  recentMessages: { direction: 'inbound' | 'outbound'; body: string }[];
-  memory: MemoryRow[];
-}): {
-  summary: string[];
-  reasoning: string;
-  suggestedReply?: { body: string; confidence: number };
-  relevantMemory: { id: string; kind: 'fact' | 'summary' | 'note'; content: string }[];
-} {
-  const { customerName, channel, recentMessages, memory } = opts;
-  const lastInbound = [...recentMessages].reverse().find((m) => m.direction === 'inbound');
-  const lastOutbound = [...recentMessages].reverse().find((m) => m.direction === 'outbound');
-
-  const summary: string[] = [];
-  if (customerName) {
-    summary.push(`${customerName} writing on ${channel.toUpperCase()}`);
-  }
-  if (lastInbound) {
-    summary.push(`Latest: "${lastInbound.body.slice(0, 140)}${lastInbound.body.length > 140 ? '…' : ''}"`);
-  }
-  summary.push(
-    `${recentMessages.length} message${recentMessages.length === 1 ? '' : 's'} so far · AI confidence dropped below threshold`,
-  );
-
-  const relevantMemory = memory.slice(0, 4).map((m) => ({
-    id: m.id,
-    kind: (m.kind as 'fact' | 'summary' | 'note') ?? 'note',
-    content: m.content,
-  }));
-
-  return {
-    summary,
-    reasoning:
-      'AI escalated this thread because the most recent reply confidence fell below 0.7 and the conversation contains an unresolved customer ask. Take over or send a tuned reply.',
-    suggestedReply: lastOutbound
-      ? { body: lastOutbound.body, confidence: 0.66 }
-      : undefined,
-    relevantMemory,
-  };
-}
-
-export const dynamic = 'force-dynamic';
-
-interface PageProps {
-  params: Promise<{ id: string }>;
-}
-
 export default async function ConversationPage({ params }: PageProps) {
   const { id } = await params;
   const { orgId } = await requireMembership();
   const admin = createAdminClient();
 
+  // Sidebar + list (shared across routes)
+  const list = await loadInboxList(orgId);
+
+  // Active conversation
   const { data: convo } = await admin
     .from('conversations')
     .select(
       `id, status, channel, channel_thread_id, last_message_at, auto_reply_enabled,
        customer_id,
-       customers!inner(id, name, avatar_url, channel_ids, tags)`,
+       customers!inner(id, name, avatar_url, channel_ids, tags, created_at)`,
     )
     .eq('id', id)
     .eq('org_id', orgId)
@@ -86,6 +50,7 @@ export default async function ConversationPage({ params }: PageProps) {
     avatar_url: string | null;
     channel_ids: Record<string, string>;
     tags: string[];
+    created_at: string;
   };
 
   const { data: messageRows } = await admin
@@ -102,6 +67,7 @@ export default async function ConversationPage({ params }: PageProps) {
     .order('created_at', { ascending: false })
     .limit(20);
 
+  // Mark thread as read
   await admin
     .from('conversations')
     .update({ unread_count: 0 })
@@ -118,135 +84,62 @@ export default async function ConversationPage({ params }: PageProps) {
 
   const memoryRows = (memory ?? []) as MemoryRow[];
 
-  const isEscalated = convo.status === 'pending' || convo.status === 'open';
-  // Show handoff when AI hasn't been replying recently and there's an unresolved
-  // inbound. Heuristic: last message is inbound + at least one AI message earlier.
-  const last = messages[messages.length - 1];
-  const hasAi = messages.some((m) => m.aiGenerated);
-  const showHandoff =
-    isEscalated &&
-    !!last &&
-    last.direction === 'inbound' &&
-    hasAi;
-
-  const handoff = showHandoff
-    ? buildHandoffPayload({
-        customerName: customer.name,
-        channel: convo.channel,
-        recentMessages: messages.slice(-6),
-        memory: memoryRows,
+  // Format customer "since" date for the context pane.
+  const since = customer.created_at
+    ? new Date(customer.created_at).toLocaleDateString(undefined, {
+        month: 'short',
+        year: 'numeric',
       })
     : null;
 
+  // Folder derivation from current status — passed to sidebar so the
+  // active folder matches what the user is viewing.
+  const folder =
+    convo.status === 'pending'
+      ? 'approval'
+      : convo.status === 'human'
+        ? 'escalated'
+        : 'all';
+
   return (
-    <main className="mx-auto grid max-w-7xl grid-cols-1 gap-6 p-8 lg:grid-cols-[1fr_320px]">
-      <div className="space-y-5">
-        <div className="flex items-center gap-3">
-          <Link
-            href="/inbox"
-            className="font-mono text-[11px] uppercase tracking-[0.14em] text-mute hover:text-warm"
-          >
-            ← Back to inbox
-          </Link>
-        </div>
-        <div className="flex items-start justify-between gap-3 rounded-lg border border-hairline bg-card p-4">
-          <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-warm-soft text-base font-medium text-warm">
-              {(customer.name?.[0] ?? '?').toUpperCase()}
-            </div>
-            <div>
-              <p className="font-medium text-ink">{customer.name ?? 'Unnamed customer'}</p>
-              <div className="mt-1 flex items-center gap-2">
-                <ChannelBadge channel={convo.channel} />
-                <span className="font-mono text-[10px] uppercase tracking-widest text-mute">
-                  status · {convo.status}
-                </span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {handoff && (
-          <HandoffCard
-            summary={handoff.summary}
-            reasoning={handoff.reasoning}
-            suggestedReply={handoff.suggestedReply}
-            relevantMemory={handoff.relevantMemory}
-            assigneeName={null}
-            composeHref="#compose"
+    <div className="flex h-[calc(100vh-100px)] min-h-0 flex-col">
+      <InboxShell
+        sidebar={
+          <InboxSidebar
+            folder={folder}
+            channelCounts={list.channelCounts}
+            totalCounts={list.totalCounts}
           />
-        )}
-
-        <ThreadView
-          conversationId={convo.id}
-          autoReplyEnabled={convo.auto_reply_enabled}
-          status={convo.status}
-          messages={messages}
-        />
-      </div>
-      <aside className="space-y-4">
-        <div className="rounded-lg border border-hairline bg-card p-4">
-          <h3 className="font-mono text-[10px] uppercase tracking-[0.18em] text-mute">
-            Customer
-          </h3>
-          <dl className="mt-3 space-y-2 text-sm">
-            <div>
-              <dt className="text-xs text-mute">Name</dt>
-              <dd className="text-ink">{customer.name ?? '—'}</dd>
-            </div>
-            <div>
-              <dt className="text-xs text-mute">LINE ID</dt>
-              <dd className="break-all font-mono text-xs text-ink-2">
-                {customer.channel_ids?.line ?? '—'}
-              </dd>
-            </div>
-            <div>
-              <dt className="text-xs text-mute">Tags</dt>
-              <dd className="mt-1 flex flex-wrap gap-1">
-                {customer.tags?.length ? (
-                  customer.tags.map((t) => (
-                    <span
-                      key={t}
-                      className="rounded bg-paper-2 px-1.5 py-0.5 text-xs text-ink-2"
-                    >
-                      {t}
-                    </span>
-                  ))
-                ) : (
-                  <span className="text-xs text-mute">none</span>
-                )}
-              </dd>
-            </div>
-          </dl>
-          <Link
-            href={`/customers/${customer.id}`}
-            className="mt-3 inline-block text-xs text-warm hover:underline"
-          >
-            View full profile →
-          </Link>
-        </div>
-        <div className="rounded-lg border border-hairline bg-card p-4">
-          <h3 className="font-mono text-[10px] uppercase tracking-[0.18em] text-mute">
-            Memory
-          </h3>
-          {memoryRows.length === 0 ? (
-            <p className="mt-3 text-xs text-mute">
-              No memory captured yet. AI will extract facts after a few exchanges.
-            </p>
-          ) : (
-            <ul className="mt-3 space-y-2.5 text-sm">
-              {memoryRows.map((m) => (
-                <li key={m.id} className="rounded-md bg-paper-2 px-3 py-2">
-                  <span className="font-mono text-[10px] uppercase tracking-widest text-warm">
-                    {m.kind}
-                  </span>
-                  <p className="mt-1 text-xs leading-snug text-ink-2">{m.content}</p>
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
-      </aside>
-    </main>
+        }
+        list={<InboxList items={list.items} totalCount={list.items.length} />}
+        thread={
+          <InboxThreadView
+            conversationId={convo.id}
+            customerName={customer.name}
+            channel={(convo.channel as ChannelKey) ?? 'web'}
+            status={convo.status}
+            autoReplyEnabled={convo.auto_reply_enabled}
+            messages={messages}
+            customerMeta={{
+              tier: customer.tags?.find((t) => /vip|gold|silver|new/i.test(t)) ?? 'Member',
+            }}
+          />
+        }
+        context={
+          <InboxContextPane
+            customerId={customer.id}
+            customerName={customer.name ?? 'Unnamed'}
+            channel={(convo.channel as ChannelKey) ?? 'web'}
+            since={since}
+            tags={customer.tags ?? []}
+            memory={memoryRows.map((m) => ({
+              id: m.id,
+              kind: m.kind,
+              content: m.content,
+            }))}
+          />
+        }
+      />
+    </div>
   );
 }
