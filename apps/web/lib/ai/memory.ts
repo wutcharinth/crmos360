@@ -1,6 +1,8 @@
 import 'server-only';
 import { generate, embed } from '@crmos360/ai';
 import { createAdminClient } from '@/lib/supabase/admin';
+import { getPdpaSettings } from '@/lib/pdpa';
+import { recordAction } from '@/lib/audit';
 
 const EXTRACTION_PROMPT = `You are an information extraction model. From the customer's recent messages,
 extract durable facts that would help personalize future replies (preferences, past complaints, tone, language, location).
@@ -77,6 +79,23 @@ export async function extractAndStoreMemory(args: ExtractArgs): Promise<number> 
 
   if (parsed.length === 0) return 0;
 
+  // PDPA gate. memory_mode=manual short-circuits entirely; approval queues
+  // each fact in pending_facts for admin review before it lands in memory.
+  const pdpa = await getPdpaSettings(args.orgId);
+  if (pdpa.memoryMode === 'manual') {
+    await recordAction({
+      orgId: args.orgId,
+      actorType: 'system',
+      action: 'memory.skip-manual-mode',
+      resourceKind: 'conversation',
+      resourceId: args.conversationId,
+      metadata: { proposed: parsed.length },
+    });
+    return 0;
+  }
+
+  const targetTable = pdpa.memoryMode === 'approval' ? 'pending_facts' : 'customer_memory';
+
   let inserted = 0;
   for (const item of parsed.slice(0, 5)) {
     let embedding: number[] | null = null;
@@ -86,7 +105,7 @@ export async function extractAndStoreMemory(args: ExtractArgs): Promise<number> 
       console.warn('embed failed for memory item', err);
     }
 
-    const { error } = await admin.from('customer_memory').insert({
+    const { error } = await admin.from(targetTable).insert({
       org_id: args.orgId,
       customer_id: customerId,
       kind: item.kind.slice(0, 30),
@@ -101,8 +120,17 @@ export async function extractAndStoreMemory(args: ExtractArgs): Promise<number> 
     org_id: args.orgId,
     conversation_id: args.conversationId,
     kind: 'memory_extract',
-    response: { count: inserted, items: parsed },
+    response: { count: inserted, items: parsed, table: targetTable, mode: pdpa.memoryMode },
     accepted: inserted > 0,
+  });
+
+  await recordAction({
+    orgId: args.orgId,
+    actorType: 'ai',
+    action: pdpa.memoryMode === 'approval' ? 'memory.queue-pending' : 'memory.write',
+    resourceKind: 'conversation',
+    resourceId: args.conversationId,
+    metadata: { inserted, mode: pdpa.memoryMode, target: targetTable },
   });
 
   return inserted;

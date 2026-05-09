@@ -44,7 +44,12 @@ function buildHistoryMessages(history: ProspectMessage[]) {
   const sliced = history.slice(-MAX_HISTORY_TURNS * 2);
   return sliced.map((m) => ({
     role: m.direction === 'in' ? ('user' as const) : ('assistant' as const),
-    content: m.body,
+    // Wrap visitor input in a clear data-not-instruction tag to harden against
+    // prompt injection. The system prompt acknowledges this convention.
+    content:
+      m.direction === 'in'
+        ? `<visitor_message>\n${m.body}\n</visitor_message>`
+        : m.body,
   }));
 }
 

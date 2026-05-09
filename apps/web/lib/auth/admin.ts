@@ -25,12 +25,15 @@ function adminEmailList(): string[] {
  * not a 403, so the URL surface is unenumerable.
  *
  * Admin grant rules:
- *   1. Email is in ADMIN_EMAILS env allowlist  → global admin (always)
- *   2. Org membership role is 'owner' or 'admin'  → org admin
- *   3. ADMIN_EMAILS is empty AND user has any org membership  → permissive dev
- *   4. Local dev with no Supabase env  → bypass to a synthetic admin context
+ *   1. Local dev with no Supabase env  → synthetic admin context (DEV_BYPASS)
+ *   2. ADMIN_EMAILS env allowlist match  → global admin
+ *   3. ADMIN_DEV_PERMISSIVE=1 (dev only) AND any org admin role  → granted
+ *   4. Anything else → 404
  *
- * Anything else → 404.
+ * In production, ADMIN_EMAILS MUST be non-empty. An empty allowlist returns
+ * 404 for every caller — fail closed, not permissive. This prevents
+ * cross-tenant data exposure on the FlowAIOS admin pages (which surface
+ * marketing-site visitors' transcripts, costs, jailbreak attempts).
  */
 export async function requireAdmin(): Promise<AdminContext> {
   if (DEV_BYPASS) {
@@ -64,8 +67,13 @@ export async function requireAdmin(): Promise<AdminContext> {
   const role = memberRow?.role as 'owner' | 'admin' | 'agent' | undefined;
   const isOrgAdmin = role === 'owner' || role === 'admin';
 
-  // Permissive dev: when ADMIN_EMAILS is empty, allow any org admin.
-  const allowed = isGlobalAdmin || (allowlist.length === 0 ? isOrgAdmin : false);
+  // Hard-fail in prod when allowlist is empty. Permissive-org-admin is
+  // dev-only and gated by an explicit env flag.
+  const isProd = process.env.NODE_ENV === 'production';
+  const permissiveDev =
+    !isProd && process.env.ADMIN_DEV_PERMISSIVE === '1' && isOrgAdmin;
+
+  const allowed = isGlobalAdmin || permissiveDev;
   if (!allowed) notFound();
 
   const org = (memberRow?.organizations ?? {}) as unknown as {
