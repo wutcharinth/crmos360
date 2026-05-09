@@ -150,8 +150,12 @@ export async function getLesson(id: string): Promise<MockLesson | null> {
 // — Dashboard ——————————————————————————————————————————————————————————————
 
 export async function getDashboardMetrics(): Promise<MockDashboardMetrics> {
-  if (!useMocks()) return notImplemented('dashboard');
-  return mockDashboard;
+  if (useMocks()) return mockDashboard;
+
+  const { requireMembership } = await import('@/lib/auth/current-user');
+  const { getOrgDashboard } = await import('@/lib/intelligence/compute');
+  const { orgId } = await requireMembership();
+  return getOrgDashboard(orgId);
 }
 
 // — Advisor rules ——————————————————————————————————————————————————————————————

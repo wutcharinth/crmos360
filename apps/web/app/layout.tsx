@@ -4,6 +4,7 @@ import { cookies } from 'next/headers';
 import { SkinProvider } from '@/components/skin-provider';
 import { SKIN_COOKIE_NAME, readSkinCookie } from '@/lib/skin-cookie';
 import { LANG_COOKIE, readLangCookie } from '@/lib/marketing/lang';
+import { createClient, isSupabaseConfigured } from '@/lib/supabase/server';
 import './globals.css';
 
 const inter = Inter({
@@ -49,6 +50,21 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   // Resolve `system` to `daylight` at SSR (no window). Client effect re-resolves.
   const initialClass = initialSkin === 'cockpit' ? 'dark' : '';
 
+  // When Supabase is configured, surface the user id so the SkinProvider
+  // can hydrate from user_prefs on mount. Wrapped in try/catch because
+  // `getUser()` writes refresh cookies, which can throw in some
+  // server-component contexts; the cookie skin remains a safe fallback.
+  let userId: string | null = null;
+  if (isSupabaseConfigured()) {
+    try {
+      const supabase = await createClient();
+      const { data } = await supabase.auth.getUser();
+      userId = data.user?.id ?? null;
+    } catch {
+      userId = null;
+    }
+  }
+
   return (
     <html
       lang={initialLang}
@@ -56,7 +72,9 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       suppressHydrationWarning
     >
       <body className="font-sans antialiased">
-        <SkinProvider initialSkin={initialSkin}>{children}</SkinProvider>
+        <SkinProvider initialSkin={initialSkin} userId={userId}>
+          {children}
+        </SkinProvider>
       </body>
     </html>
   );

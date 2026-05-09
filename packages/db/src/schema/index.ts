@@ -79,6 +79,32 @@ export const userProfiles = pgTable(
   ],
 ).enableRLS();
 
+// --- user_prefs ---
+// Per-user appearance prefs (skin / density / language). Cookie remains
+// the SSR-time fast path; this table is the source of truth for
+// signed-in users across devices.
+
+export const userPrefs = pgTable(
+  'user_prefs',
+  {
+    userId: uuid('user_id')
+      .primaryKey()
+      .references(() => authUsers.id, { onDelete: 'cascade' }),
+    skin: text('skin').notNull().default('daylight'),
+    density: text('density').notNull().default('comfortable'),
+    language: text('language').notNull().default('th'),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+  },
+  (t) => [
+    pgPolicy('user_prefs_self_all', {
+      for: 'all',
+      to: 'authenticated',
+      using: sql`${t.userId} = (select auth.uid())`,
+      withCheck: sql`${t.userId} = (select auth.uid())`,
+    }),
+  ],
+).enableRLS();
+
 // --- organizations ---
 
 export const organizations = pgTable(
@@ -89,6 +115,7 @@ export const organizations = pgTable(
     slug: text('slug').notNull().unique(),
     plan: text('plan').notNull().default('free'),
     settings: jsonb('settings').notNull().default(sql`'{}'::jsonb`),
+    defaultSkin: text('default_skin').notNull().default('daylight'),
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
     updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
   },
@@ -551,3 +578,5 @@ export type ProspectMessage = typeof prospectMessages.$inferSelect;
 export type NewProspectMessage = typeof prospectMessages.$inferInsert;
 export type LlmUsageEntry = typeof llmUsage.$inferSelect;
 export type NewLlmUsageEntry = typeof llmUsage.$inferInsert;
+export type UserPrefs = typeof userPrefs.$inferSelect;
+export type NewUserPrefs = typeof userPrefs.$inferInsert;

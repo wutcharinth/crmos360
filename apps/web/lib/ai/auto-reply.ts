@@ -3,6 +3,7 @@ import { generate, type LlmMessage } from '@crmos360/ai';
 import { sendPush, sendReply } from '@crmos360/line';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { extractAndStoreMemory } from './memory';
+import { applyRules } from './advisor';
 
 const SYSTEM_PROMPT = `You are FlowAIOS, an AI customer service agent for a Thai e-commerce business.
 Reply in the same language the customer used (default: Thai).
@@ -47,17 +48,35 @@ export async function runAutoReply(args: RunAutoReplyArgs): Promise<void> {
   let replyText: string;
   let model = 'unknown';
 
-  try {
-    const res = await generate({
-      messages: [{ role: 'system', content: SYSTEM_PROMPT }, ...history],
-      temperature: 0.4,
-      maxTokens: 400,
-    });
-    replyText = res.text.trim();
-    model = res.model;
-  } catch (err) {
-    console.error('LLM generate failed', err);
-    return;
+  // Configuration Advisor: check if any approved rule matches the latest
+  // inbound. A matching rule short-circuits Gemini entirely. The rule's
+  // applied_count is bumped by applyRules() itself.
+  const lastInbound = [...history].reverse().find((m) => m.role === 'user');
+  const matched = lastInbound
+    ? await applyRules({ orgId: args.orgId, body: lastInbound.content }).catch(() => null)
+    : null;
+
+  if (matched && matched.actionKind === 'auto_reply') {
+    const template = (matched.actionPayload.template as string) ?? '';
+    if (template) {
+      replyText = template;
+      model = `advisor-rule:${matched.ruleId}`;
+    } else {
+      replyText = '';
+    }
+  } else {
+    try {
+      const res = await generate({
+        messages: [{ role: 'system', content: SYSTEM_PROMPT }, ...history],
+        temperature: 0.4,
+        maxTokens: 400,
+      });
+      replyText = res.text.trim();
+      model = res.model;
+    } catch (err) {
+      console.error('LLM generate failed', err);
+      return;
+    }
   }
 
   if (!replyText) return;
