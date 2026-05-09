@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { requireMembership } from '@/lib/auth/current-user';
 import { isSupabaseConfigured } from '@/lib/supabase/server';
+import { isFlagEnabled, FLAG_M15 } from '@/lib/flags';
 import { Button } from '@/components/ui/button';
 import { UserMenu } from '@/components/app/user-menu';
 
@@ -18,8 +19,8 @@ const DEV_CONTEXT: DevContext = {
 
 export const dynamic = 'force-dynamic';
 
-const mainLinks = [
-  { href: '/inbox', label: 'Inbox' },
+const baseMainLinks = [{ href: '/inbox', label: 'Inbox' }];
+const m15MainLinks = [
   { href: '/knowledge', label: 'Knowledge' },
   { href: '/intelligence', label: 'Intelligence' },
   { href: '/advisor', label: 'Advisor' },
@@ -30,9 +31,10 @@ const adminLinks = [
   { href: '/admin/team', label: 'Team' },
   { href: '/admin/integrations', label: 'Integrations' },
   { href: '/admin/audit', label: 'Audit' },
+  { href: '/admin/flags', label: 'Flags' },
 ];
 
-const settingsLinks = [
+const m15SettingsLinks = [
   { href: '/settings/appearance', label: 'Appearance' },
   { href: '/settings/channels', label: 'Channels' },
   { href: '/settings/pdpa', label: 'PDPA' },
@@ -46,6 +48,17 @@ export default async function AppLayout({ children }: { children: React.ReactNod
     : DEV_CONTEXT;
   const { orgName, role, user } = ctx;
   const isAdmin = role === 'owner' || role === 'admin';
+
+  // Resolve the m15 flag once so the nav can hide entries when off.
+  const orgIdForFlag =
+    'orgId' in ctx ? ctx.orgId : null;
+  const m15On = await isFlagEnabled(
+    typeof orgIdForFlag === 'string' ? orgIdForFlag : null,
+    FLAG_M15,
+  );
+
+  const mainLinks = m15On ? [...baseMainLinks, ...m15MainLinks] : baseMainLinks;
+  const settingsLinks = m15On ? m15SettingsLinks : [];
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
