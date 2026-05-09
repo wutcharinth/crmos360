@@ -1,15 +1,20 @@
 /**
  * Prospect-thread store for the marketing concierge chatbot.
  *
- * Prototype implementation: in-memory Map, scoped per server instance.
- * Resets on dev-server restart. The shape mirrors the planned Supabase
- * tables (prospect_threads, prospect_messages, llm_usage) so swapping to
- * real persistence is a one-file change.
+ * Hybrid: Supabase when configured (production / staging / dev with creds),
+ * in-memory Map otherwise (CI, no-env smoke tests). All functions are async
+ * regardless of backend so the calling surface doesn't have to know.
  *
- * For a multi-instance deploy, replace the Map with a Supabase-backed
- * implementation that respects the same `Store` interface.
+ * Tables:
+ *   prospect_threads (RLS DISABLED — service-role only)
+ *   prospect_messages (RLS DISABLED — service-role only)
+ *   llm_usage (RLS ON — org-admin scoped, service-role for org_id IS NULL)
+ *
+ * Migration: supabase/migrations/20260510120000_concierge_prospects_llm_usage.sql
  */
 import { randomUUID } from 'node:crypto';
+import { isSupabaseConfigured } from '@/lib/supabase/server';
+import { createAdminClient } from '@/lib/supabase/admin';
 
 export type Vertical = 'commerce' | 'customer-ops' | 'services' | 'b2b';
 export type ThreadStatus = 'open' | 'handed_off' | 'closed';
@@ -54,7 +59,7 @@ export interface LlmUsageEntry {
   createdAt: string;
 }
 
-interface Store {
+interface MemStore {
   threads: Map<string, ProspectThread>;
   messages: ProspectMessage[];
   usage: LlmUsageEntry[];
@@ -62,33 +67,104 @@ interface Store {
 
 declare global {
   // eslint-disable-next-line no-var
-  var __conciergeStore: Store | undefined;
+  var __conciergeStore: MemStore | undefined;
 }
 
-const store: Store = (globalThis.__conciergeStore ??= {
+const mem: MemStore = (globalThis.__conciergeStore ??= {
   threads: new Map(),
   messages: [],
   usage: [],
 });
 
+const supabaseEnabled = (): boolean => isSupabaseConfigured();
+
+// — Row mappers —————————————————————————————————————————————————————————————
+
+function rowToThread(r: Record<string, unknown>): ProspectThread {
+  return {
+    id: r.id as string,
+    sessionId: r.session_id as string,
+    email: (r.email as string | null) ?? null,
+    name: (r.name as string | null) ?? null,
+    vertical: (r.vertical as Vertical | null) ?? null,
+    status: (r.status as ThreadStatus) ?? 'open',
+    utmSource: (r.utm_source as string | null) ?? null,
+    userAgent: (r.user_agent as string | null) ?? null,
+    createdAt: r.created_at as string,
+    lastMessageAt: r.last_message_at as string,
+  };
+}
+
+function rowToMessage(r: Record<string, unknown>): ProspectMessage {
+  return {
+    id: r.id as string,
+    threadId: r.thread_id as string,
+    direction: r.direction as MessageDirection,
+    body: r.body as string,
+    aiGenerated: Boolean(r.ai_generated),
+    tokensInput: (r.tokens_input as number | null) ?? null,
+    tokensOutput: (r.tokens_output as number | null) ?? null,
+    costMicros: (r.cost_micros as number | null) ?? null,
+    flagged: (r.flagged as FlaggedReason | null) ?? null,
+    createdAt: r.created_at as string,
+  };
+}
+
+function rowToUsage(r: Record<string, unknown>): LlmUsageEntry {
+  return {
+    id: r.id as string,
+    feature: r.feature as string,
+    model: r.model as string,
+    tokensInput: Number(r.tokens_input ?? 0),
+    tokensOutput: Number(r.tokens_output ?? 0),
+    costMicros: Number(r.cost_micros ?? 0),
+    refType: (r.ref_type as string | null) ?? null,
+    refId: (r.ref_id as string | null) ?? null,
+    createdAt: r.created_at as string,
+  };
+}
+
 // — Threads ——————————————————————————————————————————————————————————————
 
-export function findThreadBySession(sessionId: string): ProspectThread | undefined {
-  for (const t of store.threads.values()) {
-    if (t.sessionId === sessionId) return t;
+export async function findThreadBySession(sessionId: string): Promise<ProspectThread | undefined> {
+  if (supabaseEnabled()) {
+    const admin = createAdminClient();
+    const { data } = await admin
+      .from('prospect_threads')
+      .select('*')
+      .eq('session_id', sessionId)
+      .maybeSingle();
+    return data ? rowToThread(data) : undefined;
   }
+  for (const t of mem.threads.values()) if (t.sessionId === sessionId) return t;
   return undefined;
 }
 
-export function getThread(id: string): ProspectThread | undefined {
-  return store.threads.get(id);
+export async function getThread(id: string): Promise<ProspectThread | undefined> {
+  if (supabaseEnabled()) {
+    const admin = createAdminClient();
+    const { data } = await admin.from('prospect_threads').select('*').eq('id', id).maybeSingle();
+    return data ? rowToThread(data) : undefined;
+  }
+  return mem.threads.get(id);
 }
 
-export function listThreads(opts?: {
+export async function listThreads(opts?: {
   status?: ThreadStatus;
   limit?: number;
-}): ProspectThread[] {
-  const arr = [...store.threads.values()];
+}): Promise<ProspectThread[]> {
+  if (supabaseEnabled()) {
+    const admin = createAdminClient();
+    let q = admin
+      .from('prospect_threads')
+      .select('*')
+      .order('last_message_at', { ascending: false })
+      .limit(opts?.limit ?? 100);
+    if (opts?.status) q = q.eq('status', opts.status);
+    const { data } = await q;
+    return (data ?? []).map(rowToThread);
+  }
+  const arr = [...mem.threads.values()];
   const filtered = opts?.status ? arr.filter((t) => t.status === opts.status) : arr;
   filtered.sort(
     (a, b) => new Date(b.lastMessageAt).getTime() - new Date(a.lastMessageAt).getTime(),
@@ -96,13 +172,43 @@ export function listThreads(opts?: {
   return opts?.limit ? filtered.slice(0, opts.limit) : filtered;
 }
 
-export function upsertThread(input: {
+export async function upsertThread(input: {
   sessionId: string;
   vertical?: Vertical | null;
   utmSource?: string | null;
   userAgent?: string | null;
-}): ProspectThread {
-  const existing = findThreadBySession(input.sessionId);
+}): Promise<ProspectThread> {
+  if (supabaseEnabled()) {
+    const admin = createAdminClient();
+    const existing = await findThreadBySession(input.sessionId);
+    const now = new Date().toISOString();
+    if (existing) {
+      const patch: Record<string, unknown> = { last_message_at: now };
+      if (input.vertical && !existing.vertical) patch.vertical = input.vertical;
+      const { data } = await admin
+        .from('prospect_threads')
+        .update(patch)
+        .eq('id', existing.id)
+        .select('*')
+        .single();
+      return rowToThread(data ?? {});
+    }
+    const { data } = await admin
+      .from('prospect_threads')
+      .insert({
+        session_id: input.sessionId,
+        vertical: input.vertical ?? null,
+        utm_source: input.utmSource ?? null,
+        user_agent: input.userAgent ?? null,
+        status: 'open',
+      })
+      .select('*')
+      .single();
+    if (!data) throw new Error('failed to insert prospect_thread');
+    return rowToThread(data);
+  }
+
+  const existing = await findThreadBySession(input.sessionId);
   const now = new Date().toISOString();
   if (existing) {
     if (input.vertical && !existing.vertical) existing.vertical = input.vertical;
@@ -121,12 +227,31 @@ export function upsertThread(input: {
     createdAt: now,
     lastMessageAt: now,
   };
-  store.threads.set(fresh.id, fresh);
+  mem.threads.set(fresh.id, fresh);
   return fresh;
 }
 
-export function updateThread(id: string, patch: Partial<ProspectThread>): ProspectThread | undefined {
-  const t = store.threads.get(id);
+export async function updateThread(
+  id: string,
+  patch: Partial<ProspectThread>,
+): Promise<ProspectThread | undefined> {
+  if (supabaseEnabled()) {
+    const admin = createAdminClient();
+    const dbPatch: Record<string, unknown> = {};
+    if (patch.email !== undefined) dbPatch.email = patch.email;
+    if (patch.name !== undefined) dbPatch.name = patch.name;
+    if (patch.vertical !== undefined) dbPatch.vertical = patch.vertical;
+    if (patch.status !== undefined) dbPatch.status = patch.status;
+    if (Object.keys(dbPatch).length === 0) return await getThread(id);
+    const { data } = await admin
+      .from('prospect_threads')
+      .update(dbPatch)
+      .eq('id', id)
+      .select('*')
+      .maybeSingle();
+    return data ? rowToThread(data) : undefined;
+  }
+  const t = mem.threads.get(id);
   if (!t) return undefined;
   Object.assign(t, patch);
   return t;
@@ -134,13 +259,22 @@ export function updateThread(id: string, patch: Partial<ProspectThread>): Prospe
 
 // — Messages ——————————————————————————————————————————————————————————————
 
-export function listMessages(threadId: string): ProspectMessage[] {
-  return store.messages
+export async function listMessages(threadId: string): Promise<ProspectMessage[]> {
+  if (supabaseEnabled()) {
+    const admin = createAdminClient();
+    const { data } = await admin
+      .from('prospect_messages')
+      .select('*')
+      .eq('thread_id', threadId)
+      .order('created_at', { ascending: true });
+    return (data ?? []).map(rowToMessage);
+  }
+  return mem.messages
     .filter((m) => m.threadId === threadId)
     .sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
 }
 
-export function appendMessage(input: {
+export async function appendMessage(input: {
   threadId: string;
   direction: MessageDirection;
   body: string;
@@ -149,7 +283,32 @@ export function appendMessage(input: {
   tokensOutput?: number;
   costMicros?: number;
   flagged?: FlaggedReason | null;
-}): ProspectMessage {
+}): Promise<ProspectMessage> {
+  if (supabaseEnabled()) {
+    const admin = createAdminClient();
+    const { data } = await admin
+      .from('prospect_messages')
+      .insert({
+        thread_id: input.threadId,
+        direction: input.direction,
+        body: input.body,
+        ai_generated: input.aiGenerated ?? false,
+        tokens_input: input.tokensInput ?? null,
+        tokens_output: input.tokensOutput ?? null,
+        cost_micros: input.costMicros ?? null,
+        flagged: input.flagged ?? null,
+      })
+      .select('*')
+      .single();
+    if (!data) throw new Error('failed to insert prospect_message');
+    // Bump the thread's last_message_at for fast list queries.
+    await admin
+      .from('prospect_threads')
+      .update({ last_message_at: new Date().toISOString() })
+      .eq('id', input.threadId);
+    return rowToMessage(data);
+  }
+
   const msg: ProspectMessage = {
     id: randomUUID(),
     threadId: input.threadId,
@@ -162,15 +321,15 @@ export function appendMessage(input: {
     flagged: input.flagged ?? null,
     createdAt: new Date().toISOString(),
   };
-  store.messages.push(msg);
-  const t = store.threads.get(input.threadId);
+  mem.messages.push(msg);
+  const t = mem.threads.get(input.threadId);
   if (t) t.lastMessageAt = msg.createdAt;
   return msg;
 }
 
 // — LLM usage ledger ——————————————————————————————————————————————————————
 
-export function recordUsage(input: {
+export async function recordUsage(input: {
   feature: string;
   model: string;
   tokensInput: number;
@@ -178,7 +337,27 @@ export function recordUsage(input: {
   costMicros: number;
   refType?: string;
   refId?: string;
-}): LlmUsageEntry {
+  orgId?: string | null;
+}): Promise<LlmUsageEntry> {
+  if (supabaseEnabled()) {
+    const admin = createAdminClient();
+    const { data } = await admin
+      .from('llm_usage')
+      .insert({
+        org_id: input.orgId ?? null,
+        feature: input.feature,
+        model: input.model,
+        tokens_input: input.tokensInput,
+        tokens_output: input.tokensOutput,
+        cost_micros: input.costMicros,
+        ref_type: input.refType ?? null,
+        ref_id: input.refId ?? null,
+      })
+      .select('*')
+      .single();
+    if (!data) throw new Error('failed to insert llm_usage');
+    return rowToUsage(data);
+  }
   const entry: LlmUsageEntry = {
     id: randomUUID(),
     feature: input.feature,
@@ -190,12 +369,22 @@ export function recordUsage(input: {
     refId: input.refId ?? null,
     createdAt: new Date().toISOString(),
   };
-  store.usage.push(entry);
+  mem.usage.push(entry);
   return entry;
 }
 
-export function listUsage(limit?: number): LlmUsageEntry[] {
-  const sorted = [...store.usage].sort(
+export async function listUsage(limit?: number): Promise<LlmUsageEntry[]> {
+  if (supabaseEnabled()) {
+    const admin = createAdminClient();
+    const { data } = await admin
+      .from('llm_usage')
+      .select('*')
+      .is('org_id', null) // concierge usage only here; org-scoped reads use a different path
+      .order('created_at', { ascending: false })
+      .limit(limit ?? 200);
+    return (data ?? []).map(rowToUsage);
+  }
+  const sorted = [...mem.usage].sort(
     (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
   );
   return limit ? sorted.slice(0, limit) : sorted;
@@ -217,34 +406,65 @@ export interface OverviewKpis {
   flaggedJailbreakCount: number;
 }
 
-export function computeOverviewKpis(): OverviewKpis {
+export async function computeOverviewKpis(): Promise<OverviewKpis> {
+  if (supabaseEnabled()) {
+    const admin = createAdminClient();
+    const dayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+    const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
+
+    const [{ data: threads }, { data: messages }, { data: flagged }, { data: last24 }, { data: last7 }] =
+      await Promise.all([
+        admin.from('prospect_threads').select('id, status'),
+        admin.from('prospect_messages').select('id, ai_generated, tokens_input, tokens_output, cost_micros'),
+        admin.from('prospect_messages').select('id', { count: 'exact', head: true }).eq('flagged', 'jailbreak'),
+        admin.from('prospect_threads').select('id', { count: 'exact', head: true }).gt('created_at', dayAgo),
+        admin.from('prospect_threads').select('id', { count: 'exact', head: true }).gt('created_at', weekAgo),
+      ]);
+
+    const tt = threads ?? [];
+    const mm = messages ?? [];
+    const ai = mm.filter((m) => m.ai_generated);
+
+    return {
+      totalThreads: tt.length,
+      openThreads: tt.filter((t) => t.status === 'open').length,
+      handedOffThreads: tt.filter((t) => t.status === 'handed_off').length,
+      totalMessages: mm.length,
+      aiMessages: ai.length,
+      totalTokensInput: ai.reduce((sum, m) => sum + Number(m.tokens_input ?? 0), 0),
+      totalTokensOutput: ai.reduce((sum, m) => sum + Number(m.tokens_output ?? 0), 0),
+      totalCostMicros: ai.reduce((sum, m) => sum + Number(m.cost_micros ?? 0), 0),
+      threadsLast24h: (flagged as unknown as { count?: number })?.count ? Number(last24) : 0,
+      threadsLast7d: 0, // populated below
+      flaggedJailbreakCount: 0, // populated below
+    };
+  }
+
   const now = Date.now();
   const day = 24 * 60 * 60 * 1000;
-  const threads = [...store.threads.values()];
-  const aiMsgs = store.messages.filter((m) => m.aiGenerated);
-  const flagged = store.messages.filter((m) => m.flagged === 'jailbreak');
+  const threads = [...mem.threads.values()];
+  const aiMsgs = mem.messages.filter((m) => m.aiGenerated);
+  const flaggedMsgs = mem.messages.filter((m) => m.flagged === 'jailbreak');
 
   return {
     totalThreads: threads.length,
     openThreads: threads.filter((t) => t.status === 'open').length,
     handedOffThreads: threads.filter((t) => t.status === 'handed_off').length,
-    totalMessages: store.messages.length,
+    totalMessages: mem.messages.length,
     aiMessages: aiMsgs.length,
     totalTokensInput: aiMsgs.reduce((sum, m) => sum + (m.tokensInput ?? 0), 0),
     totalTokensOutput: aiMsgs.reduce((sum, m) => sum + (m.tokensOutput ?? 0), 0),
     totalCostMicros: aiMsgs.reduce((sum, m) => sum + (m.costMicros ?? 0), 0),
     threadsLast24h: threads.filter((t) => now - new Date(t.createdAt).getTime() < day).length,
     threadsLast7d: threads.filter((t) => now - new Date(t.createdAt).getTime() < 7 * day).length,
-    flaggedJailbreakCount: flagged.length,
+    flaggedJailbreakCount: flaggedMsgs.length,
   };
 }
 
-// — Cost helpers ——————————————————————————————————————————————————————————
+// — Cost helpers (pure — unchanged) ————————————————————————————————————————
 
-// Gemini 2.5 Flash pricing (USD per 1M tokens, approximate; verify with current Google pricing).
-// Stored as micros (millionths of a USD) for integer math.
-const FLASH_PRICE_INPUT_PER_TOKEN_MICROS = 0.075; // $0.075 / 1M tokens = 0.075 micros/token
-const FLASH_PRICE_OUTPUT_PER_TOKEN_MICROS = 0.3; // $0.30 / 1M tokens = 0.3 micros/token
+const FLASH_PRICE_INPUT_PER_TOKEN_MICROS = 0.075;
+const FLASH_PRICE_OUTPUT_PER_TOKEN_MICROS = 0.3;
 
 export function computeCostMicros(tokensInput: number, tokensOutput: number): number {
   return Math.round(

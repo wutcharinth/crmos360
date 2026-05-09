@@ -22,9 +22,8 @@ function fmtRelative(iso: string): string {
   return `${d}d ago`;
 }
 
-export default function CostPage() {
-  const kpis = computeOverviewKpis();
-  const ledger = listUsage();
+export default async function CostPage() {
+  const [kpis, ledger] = await Promise.all([computeOverviewKpis(), listUsage()]);
   const byFeature = ledger.reduce<
     Record<string, { tokens: number; micros: number; calls: number }>
   >((acc, e) => {

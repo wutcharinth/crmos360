@@ -28,7 +28,8 @@ export default async function ProspectsPage({
 }) {
   const params = await searchParams;
   const statusParam = (params.status ?? 'all') as ThreadStatus | 'all';
-  const threads = statusParam === 'all' ? listThreads() : listThreads({ status: statusParam });
+  const threads = await (statusParam === 'all' ? listThreads() : listThreads({ status: statusParam }));
+  const threadMessages = await Promise.all(threads.map((t) => listMessages(t.id)));
 
   return (
     <div className="mx-auto max-w-6xl space-y-9 px-8 py-10">
@@ -80,8 +81,8 @@ export default async function ProspectsPage({
         </div>
       ) : (
         <ul className="divide-y divide-hairline overflow-hidden rounded-lg border border-hairline bg-paper">
-          {threads.map((t) => {
-            const msgs = listMessages(t.id);
+          {threads.map((t, i) => {
+            const msgs = threadMessages[i] ?? [];
             const last = msgs[msgs.length - 1];
             const inboundCount = msgs.filter((m) => m.direction === 'in').length;
             return (

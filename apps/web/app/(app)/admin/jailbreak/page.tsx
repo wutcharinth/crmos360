@@ -12,16 +12,18 @@ function fmtTime(iso: string): string {
   });
 }
 
-export default function JailbreakPage() {
-  const threads = listThreads();
-  const flagged: { thread: ReturnType<typeof listThreads>[number]; messageBody: string; messageAt: string; messageId: string }[] = [];
-  for (const t of threads) {
-    for (const m of listMessages(t.id)) {
+export default async function JailbreakPage() {
+  const threads = await listThreads();
+  const messagesByThread = await Promise.all(threads.map((t) => listMessages(t.id)));
+  type ThreadShape = (typeof threads)[number];
+  const flagged: { thread: ThreadShape; messageBody: string; messageAt: string; messageId: string }[] = [];
+  threads.forEach((t, i) => {
+    for (const m of messagesByThread[i] ?? []) {
       if (m.flagged === 'jailbreak') {
         flagged.push({ thread: t, messageBody: m.body, messageAt: m.createdAt, messageId: m.id });
       }
     }
-  }
+  });
   flagged.sort((a, b) => new Date(b.messageAt).getTime() - new Date(a.messageAt).getTime());
 
   return (

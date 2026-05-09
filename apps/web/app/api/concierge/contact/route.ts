@@ -39,11 +39,11 @@ export async function POST(req: Request) {
   }
 
   // Reuse existing thread or upsert a new one
-  const existing = findThreadBySession(sessionId);
-  const thread = existing ?? upsertThread({ sessionId });
+  const existing = await findThreadBySession(sessionId);
+  const thread = existing ?? (await upsertThread({ sessionId }));
 
   // Stamp contact details + flip to handed_off
-  updateThread(thread.id, {
+  await updateThread(thread.id, {
     name: parsed.data.name ?? thread.name,
     email: parsed.data.contact, // store contact handle in email field for now
     status: 'handed_off',
@@ -51,7 +51,7 @@ export async function POST(req: Request) {
 
   // Persist the message body if provided, marked as user-direction
   if (parsed.data.message) {
-    appendMessage({
+    await appendMessage({
       threadId: thread.id,
       direction: 'in',
       body: `[contact-form] ${parsed.data.message}`,
@@ -60,7 +60,7 @@ export async function POST(req: Request) {
 
   // Auto-acknowledge in the thread so the visitor's concierge UI shows
   // confirmation when they re-open the panel.
-  appendMessage({
+  await appendMessage({
     threadId: thread.id,
     direction: 'out',
     body:

@@ -8,8 +8,8 @@ interface Probe {
   status: 'ok' | 'warn' | 'down' | 'unknown';
 }
 
-function buildProbes(): Probe[] {
-  const usage = listUsage();
+async function buildProbes(): Promise<Probe[]> {
+  const usage = await listUsage();
   const lastUsage = usage[0];
 
   return [
@@ -50,9 +50,8 @@ function buildProbes(): Probe[] {
   ];
 }
 
-export default function HealthPage() {
-  const kpis = computeOverviewKpis();
-  const probes = buildProbes();
+export default async function HealthPage() {
+  const [kpis, probes] = await Promise.all([computeOverviewKpis(), buildProbes()]);
 
   return (
     <div className="mx-auto max-w-4xl space-y-12 px-8 py-10">

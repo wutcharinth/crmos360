@@ -64,7 +64,7 @@ function buildHistoryMessages(history: ProspectMessage[]) {
 }
 
 export async function respond(input: ConciergeReplyInput): Promise<ConciergeReplyResult> {
-  const thread = upsertThread({
+  const thread = await upsertThread({
     sessionId: input.sessionId,
     vertical: input.vertical ?? null,
     utmSource: input.utmSource ?? null,
@@ -76,7 +76,7 @@ export async function respond(input: ConciergeReplyInput): Promise<ConciergeRepl
 
   // Persist the inbound message immediately so the admin /prospects page
   // surfaces an in-progress thread even if the model call fails.
-  appendMessage({
+  await appendMessage({
     threadId: thread.id,
     direction: 'in',
     body: input.message,
@@ -85,10 +85,10 @@ export async function respond(input: ConciergeReplyInput): Promise<ConciergeRepl
 
   // Flip status to handed_off when the prospect asks for human contact.
   if (isHandoffRequest && thread.status === 'open') {
-    updateThread(thread.id, { status: 'handed_off' });
+    await updateThread(thread.id, { status: 'handed_off' });
   }
 
-  const history = listMessages(thread.id);
+  const history = await listMessages(thread.id);
   const systemPrompt = buildSystemPrompt({ vertical: thread.vertical });
 
   const messages = [
@@ -111,7 +111,7 @@ export async function respond(input: ConciergeReplyInput): Promise<ConciergeRepl
       input.message.match(/[ก-๙]/)
         ? 'ขออภัยค่ะ ดิฉันล่มไปครู่หนึ่ง ลองพิมพ์อีกครั้งได้ไหมคะ'
         : 'I had a hiccup connecting just now. Could you try that again in a moment?';
-    appendMessage({
+    await appendMessage({
       threadId: thread.id,
       direction: 'out',
       body: fallback,
@@ -124,7 +124,7 @@ export async function respond(input: ConciergeReplyInput): Promise<ConciergeRepl
   const tokensOutput = approxTokens(replyText);
   const costMicros = computeCostMicros(tokensInput, tokensOutput);
 
-  appendMessage({
+  await appendMessage({
     threadId: thread.id,
     direction: 'out',
     body: replyText,
@@ -134,7 +134,7 @@ export async function respond(input: ConciergeReplyInput): Promise<ConciergeRepl
     costMicros,
   });
 
-  recordUsage({
+  await recordUsage({
     feature: 'concierge',
     model: MODEL,
     tokensInput,
@@ -145,7 +145,7 @@ export async function respond(input: ConciergeReplyInput): Promise<ConciergeRepl
   });
 
   // Re-read the thread to pick up the handoff flip.
-  const finalThread = upsertThread({ sessionId: input.sessionId });
+  const finalThread = await upsertThread({ sessionId: input.sessionId });
 
   return {
     threadId: thread.id,

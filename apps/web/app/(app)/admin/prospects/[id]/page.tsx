@@ -35,10 +35,10 @@ export default async function ProspectDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const thread = getThread(id);
+  const thread = await getThread(id);
   if (!thread) notFound();
 
-  const messages = listMessages(thread.id);
+  const messages = await listMessages(thread.id);
   const aiMessages = messages.filter((m) => m.aiGenerated);
   const totalTokens = aiMessages.reduce(
     (sum, m) => sum + (m.tokensInput ?? 0) + (m.tokensOutput ?? 0),

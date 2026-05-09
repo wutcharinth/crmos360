@@ -122,10 +122,10 @@ export async function GET() {
 
   // Find thread by session — for the visitor's own history.
   const { findThreadBySession } = await import('@/lib/concierge/store');
-  const thread = findThreadBySession(sessionId);
+  const thread = await findThreadBySession(sessionId);
   if (!thread) return NextResponse.json({ messages: [] });
 
-  const messages = listMessages(thread.id).map((m) => ({
+  const messages = (await listMessages(thread.id)).map((m) => ({
     direction: m.direction,
     body: m.body,
     createdAt: m.createdAt,

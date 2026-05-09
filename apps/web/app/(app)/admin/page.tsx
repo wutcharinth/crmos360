@@ -25,10 +25,16 @@ function fmtRelative(iso: string): string {
   return `${d}d ago`;
 }
 
-export default function AdminOverviewPage() {
-  const kpis = computeOverviewKpis();
-  const recentThreads = listThreads({ limit: 6 });
-  const recentUsage = listUsage(5);
+export default async function AdminOverviewPage() {
+  const [kpis, recentThreads, recentUsage] = await Promise.all([
+    computeOverviewKpis(),
+    listThreads({ limit: 6 }),
+    listUsage(5),
+  ]);
+  // Fetch each thread's messages in one parallel batch instead of awaiting in the render loop.
+  const recentThreadMessages = await Promise.all(
+    recentThreads.map((t) => listMessages(t.id)),
+  );
 
   return (
     <div className="mx-auto max-w-6xl space-y-12 px-8 py-10">
@@ -139,8 +145,8 @@ export default function AdminOverviewPage() {
               detail="Send a message via the concierge widget on the homepage to populate this list."
             />
           ) : (
-            recentThreads.map((t) => {
-              const msgs = listMessages(t.id);
+            recentThreads.map((t, i) => {
+              const msgs = recentThreadMessages[i] ?? [];
               const last = msgs[msgs.length - 1];
               return (
                 <Link
