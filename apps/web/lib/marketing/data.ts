@@ -3,14 +3,14 @@
 // Keep this file flat — components import only what they need.
 
 // ── Channels (hero scene + channel strip) ─────────────────────────────────────
-interface Channel { name: string; count: number; active?: boolean }
+interface Channel { key: string; name: string; count: number; active?: boolean }
 export const channels: ReadonlyArray<Channel> = [
-  { name: 'LINE',    count: 8, active: true },
-  { name: 'TikTok',  count: 5 },
-  { name: 'Shopee',  count: 4 },
-  { name: 'Lazada',  count: 3 },
-  { name: 'Meta',    count: 6 },
-  { name: 'Email',   count: 2 },
+  { key: 'line',     name: 'LINE',    count: 8, active: true },
+  { key: 'tiktok',   name: 'TikTok',  count: 5 },
+  { key: 'shopee',   name: 'Shopee',  count: 4 },
+  { key: 'lazada',   name: 'Lazada',  count: 3 },
+  { key: 'facebook', name: 'Meta',    count: 6 },
+  { key: 'email',    name: 'Email',   count: 2 },
 ];
 
 export const channelStripBrands = [

@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { channels, heroPromises } from '@/lib/marketing/data';
 import { LiveThreads } from '@/components/marketing/LiveThreads';
+import { ChannelIcon } from '@/components/ui/channel-icon';
 
 export function Hero() {
   return (
@@ -95,13 +96,16 @@ export function Hero() {
               {channels.map((ch) => (
                 <div
                   key={ch.name}
-                  className={`flex items-center justify-between rounded-md px-2.5 py-2 text-[12.5px] transition-colors ${
+                  className={`flex items-center justify-between gap-2 rounded-md px-2.5 py-2 text-[12.5px] transition-colors ${
                     ch.active
                       ? 'bg-warm-soft text-ink shadow-[inset_0_0_0_1px_hsl(var(--warm)/0.3)]'
                       : 'text-ink-2 hover:bg-paper-2 hover:text-ink'
                   }`}
                 >
-                  {ch.name}
+                  <span className="inline-flex items-center gap-2">
+                    <ChannelIcon channel={ch.key} size={14} />
+                    {ch.name}
+                  </span>
                   <small
                     className={`font-mono text-[10.5px] tabular-nums ${
                       ch.active ? 'text-warm' : 'text-mute'

@@ -6,6 +6,15 @@ import {
   verticalProfiles,
   type Vertical,
 } from '@/lib/marketing/vertical';
+import { ChannelIcon, CHANNEL_LABELS, type ChannelKey } from '@/components/ui/channel-icon';
+
+const LABEL_TO_KEY: Record<string, ChannelKey> = Object.fromEntries(
+  Object.entries(CHANNEL_LABELS).map(([k, label]) => [label, k as ChannelKey]),
+) as Record<string, ChannelKey>;
+
+function labelToKey(label: string): ChannelKey {
+  return LABEL_TO_KEY[label] ?? 'web';
+}
 
 function readCookie(): Vertical | null {
   if (typeof document === 'undefined') return null;
@@ -120,14 +129,14 @@ export function VerticalChooser({ initialVertical }: { initialVertical?: Vertica
                       </span>
                     </div>
                     <p className="text-[12.5px] leading-snug text-ink-2">{p.description}</p>
-                    <div className="flex flex-wrap gap-1.5 pt-1">
+                    <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 pt-1">
                       {p.channels.map((c) => (
-                        <span
+                        <ChannelIcon
                           key={c}
-                          className="rounded-full bg-paper px-2 py-0.5 font-mono text-[10px] text-ink-2"
-                        >
-                          {c}
-                        </span>
+                          channel={labelToKey(c)}
+                          size={16}
+                          className={active ? 'text-warm' : 'text-ink-2'}
+                        />
                       ))}
                     </div>
                   </button>

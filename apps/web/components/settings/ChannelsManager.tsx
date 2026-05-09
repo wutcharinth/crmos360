@@ -5,29 +5,28 @@ import {
   verticalProfiles,
   type Vertical,
 } from '@/lib/marketing/vertical';
+import { ChannelIcon, type ChannelKey } from '@/components/ui/channel-icon';
 
 /**
  * One row per supported channel. Description is the operator-facing one-liner
  * — what this channel actually means to your inbox if you toggle it on.
  */
 interface Channel {
-  id: string;
+  id: ChannelKey;
   /** Matches the labels in vertical.ts `channels` arrays. */
   label: string;
-  short: string; // 2-letter logo placeholder
-  brandHex: string;
   description: string;
 }
 
 const CHANNELS: ReadonlyArray<Channel> = [
-  { id: 'line', label: 'LINE OA', short: 'LN', brandHex: '#06C755', description: 'Primary anchor channel — Thai market default.' },
-  { id: 'shopee', label: 'Shopee', short: 'SP', brandHex: '#EE4D2D', description: 'Marketplace inbox — chat + order questions.' },
-  { id: 'lazada', label: 'Lazada', short: 'LZ', brandHex: '#0F146D', description: 'Marketplace inbox — slower SLA, formal tone.' },
-  { id: 'tiktok', label: 'TikTok Shop', short: 'TT', brandHex: '#000000', description: 'Live + DM replies driven from short-form ads.' },
-  { id: 'instagram', label: 'Instagram', short: 'IG', brandHex: '#E4405F', description: 'DM ad replies + story mentions.' },
-  { id: 'facebook', label: 'Facebook', short: 'FB', brandHex: '#0078FF', description: 'Messenger threads + page comments.' },
-  { id: 'email', label: 'Email', short: 'EM', brandHex: '#4A4F52', description: 'Long-form support tickets + escalations.' },
-  { id: 'whatsapp', label: 'WhatsApp', short: 'WA', brandHex: '#25D366', description: 'Cross-border B2B + diaspora customers.' },
+  { id: 'line', label: 'LINE OA', description: 'Primary anchor channel for the Thai market.' },
+  { id: 'shopee', label: 'Shopee', description: 'Marketplace inbox: chat + order questions.' },
+  { id: 'lazada', label: 'Lazada', description: 'Marketplace inbox: slower SLA, more formal tone.' },
+  { id: 'tiktok', label: 'TikTok Shop', description: 'Live + DM replies driven from short-form ads.' },
+  { id: 'instagram', label: 'Instagram', description: 'DM ad replies + story mentions.' },
+  { id: 'facebook', label: 'Facebook', description: 'Messenger threads + page comments.' },
+  { id: 'email', label: 'Email', description: 'Long-form support tickets + escalations.' },
+  { id: 'whatsapp', label: 'WhatsApp', description: 'Cross-border B2B + diaspora customers.' },
 ];
 
 const PRESETS: ReadonlyArray<{ id: Vertical | 'custom'; label: string }> = [
@@ -43,11 +42,11 @@ function presetEnabledIds(preset: Vertical | 'custom'): Set<string> | null {
   const profile = verticalProfiles.find((p) => p.id === preset);
   if (!profile) return new Set();
   // profile.channels uses labels (e.g. 'LINE OA') — map back to ids
-  const labelToId = new Map(CHANNELS.map((c) => [c.label, c.id]));
+  const labelToId = new Map<string, ChannelKey>(CHANNELS.map((c) => [c.label, c.id]));
   return new Set(
     profile.channels
       .map((label) => labelToId.get(label))
-      .filter((v): v is string => Boolean(v)),
+      .filter((v): v is ChannelKey => Boolean(v)),
   );
 }
 
@@ -140,11 +139,14 @@ export function ChannelsManager() {
                 className="flex items-center gap-4 px-1 py-3.5"
               >
                 <span
-                  className="inline-flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-md font-mono text-[11px] font-semibold text-paper"
-                  style={{ backgroundColor: c.brandHex }}
+                  className={`inline-flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-md border ${
+                    on
+                      ? 'border-warm/40 bg-warm-soft text-warm'
+                      : 'border-hairline bg-paper-2 text-ink-2'
+                  }`}
                   aria-hidden
                 >
-                  {c.short}
+                  <ChannelIcon channel={c.id} size={18} />
                 </span>
                 <div className="min-w-0 flex-1">
                   <div className="flex items-baseline gap-2">

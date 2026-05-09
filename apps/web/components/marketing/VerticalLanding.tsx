@@ -1,7 +1,17 @@
-import type { ReactElement } from 'react';
 import Link from 'next/link';
 import { Nav } from '@/components/marketing/Nav';
 import { Footer } from '@/components/marketing/Footer';
+import { ChannelIcon, CHANNEL_LABELS, type ChannelKey } from '@/components/ui/channel-icon';
+
+// Label-to-key reverse lookup for the marketing pages, which still pass
+// channels as human-readable labels via the VerticalLanding props.
+const LABEL_TO_KEY: Record<string, ChannelKey> = Object.fromEntries(
+  Object.entries(CHANNEL_LABELS).map(([k, label]) => [label, k as ChannelKey]),
+) as Record<string, ChannelKey>;
+
+function labelToKey(label: string): ChannelKey {
+  return LABEL_TO_KEY[label] ?? 'web';
+}
 
 export interface VerticalLandingProps {
   kicker: string;
@@ -167,29 +177,19 @@ export function VerticalLanding({
                 </Link>
               )}
 
-              {/* Channel chips inline with CTA — no separate row */}
-              <div className="flex flex-wrap items-center gap-1.5">
-                {channels.slice(0, 5).map((ch) => (
-                  <span
+              {/* Channel chips inline with CTA — minimal monoline icons */}
+              <div className="flex flex-wrap items-center gap-x-3.5 gap-y-2">
+                {channels.slice(0, 6).map((ch) => (
+                  <ChannelIcon
                     key={ch}
-                    className="font-mono text-[11px] tracking-[0.05em] text-mute"
-                  >
-                    {ch}
-                  </span>
-                )).reduce<ReactElement[]>((acc, el, i, arr) => {
-                  acc.push(el);
-                  if (i < arr.length - 1) {
-                    acc.push(
-                      <span key={`sep-${i}`} className="text-mute/50">
-                        ·
-                      </span>,
-                    );
-                  }
-                  return acc;
-                }, [])}
-                {channels.length > 5 && (
+                    channel={labelToKey(ch)}
+                    size={18}
+                    className="text-mute transition-colors hover:text-warm"
+                  />
+                ))}
+                {channels.length > 6 && (
                   <span className="font-mono text-[11px] tracking-[0.05em] text-mute">
-                    +{channels.length - 5}
+                    +{channels.length - 6}
                   </span>
                 )}
               </div>

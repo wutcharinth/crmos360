@@ -1,22 +1,44 @@
+import { ChannelIcon, CHANNEL_LABELS, type ChannelKey } from '@/components/ui/channel-icon';
+
 interface Props {
   channel: string;
   size?: 'sm' | 'md';
+  showLabel?: boolean;
 }
 
-const STYLES: Record<string, string> = {
-  line: 'bg-[#06C755]/10 text-[#06C755] border-[#06C755]/30',
-  messenger: 'bg-[#0078FF]/10 text-[#0078FF] border-[#0078FF]/30',
-  instagram: 'bg-[#E4405F]/10 text-[#E4405F] border-[#E4405F]/30',
+const TINTS: Record<ChannelKey, string> = {
+  line: 'border-mint/30 bg-mint-soft text-mint',
+  shopee: 'border-warm/30 bg-warm-soft text-warm',
+  lazada: 'border-warm/30 bg-warm-soft text-warm',
+  tiktok: 'border-rose/30 bg-[hsl(var(--rose)/0.06)] text-rose',
+  facebook: 'border-hairline bg-paper-2 text-ink-2',
+  messenger: 'border-hairline bg-paper-2 text-ink-2',
+  instagram: 'border-rose/30 bg-[hsl(var(--rose)/0.06)] text-rose',
+  email: 'border-hairline bg-paper-2 text-mute',
+  whatsapp: 'border-mint/30 bg-mint-soft text-mint',
+  web: 'border-hairline bg-paper-2 text-ink-2',
 };
 
-export function ChannelBadge({ channel, size = 'sm' }: Props) {
-  const cls = STYLES[channel] ?? 'bg-muted text-muted-foreground border-border';
-  const padding = size === 'sm' ? 'px-1.5 py-0.5 text-[9px]' : 'px-2 py-1 text-xs';
+function isChannelKey(v: string): v is ChannelKey {
+  return v in TINTS;
+}
+
+export function ChannelBadge({ channel, size = 'sm', showLabel = false }: Props) {
+  const key: ChannelKey = isChannelKey(channel) ? channel : 'web';
+  const tint = TINTS[key];
+  const padding = size === 'sm' ? 'h-5 px-1.5' : 'h-6 px-2';
+  const iconSize = size === 'sm' ? 12 : 14;
+  const label = CHANNEL_LABELS[key];
+
   return (
     <span
-      className={`inline-flex items-center rounded-full border font-mono uppercase tracking-wider ${cls} ${padding}`}
+      className={`inline-flex items-center gap-1 rounded-full border ${tint} ${padding}`}
+      title={label}
     >
-      {channel}
+      <ChannelIcon channel={key} size={iconSize} />
+      {showLabel && (
+        <span className="font-mono text-[10px] uppercase tracking-[0.12em]">{label}</span>
+      )}
     </span>
   );
 }

@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import type { MockDashboardCluster } from '@/lib/mocks/types';
+import { ChannelIcon } from '@/components/ui/channel-icon';
 
 interface ClusterRowProps {
   cluster: MockDashboardCluster;
@@ -38,11 +39,18 @@ export function ClusterRow({ cluster, rank, maxVolume }: ClusterRowProps) {
         >
           {cluster.representativeMessage}
         </p>
-        <p className="mt-1.5 font-mono text-[10px] uppercase tracking-[0.14em] text-mute">
-          {cluster.channels.join(' · ')}
-          <span className="mx-2 text-mute/60">/</span>
-          {cluster.sampleConversationIds.length} sample{cluster.sampleConversationIds.length === 1 ? '' : 's'}
-        </p>
+        <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 font-mono text-[10px] uppercase tracking-[0.14em] text-mute">
+          <span className="inline-flex items-center gap-1.5">
+            {cluster.channels.map((c) => (
+              <ChannelIcon key={c} channel={c} size={13} />
+            ))}
+          </span>
+          <span className="text-mute/60">/</span>
+          <span>
+            {cluster.sampleConversationIds.length} sample
+            {cluster.sampleConversationIds.length === 1 ? '' : 's'}
+          </span>
+        </div>
       </div>
 
       {/* Volume bar — visible from sm up; hidden on mobile to keep the row tight */}

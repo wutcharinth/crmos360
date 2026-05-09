@@ -7,6 +7,7 @@ import {
   type Scene,
   type SceneChannel,
 } from '@/lib/demo/scenes';
+import { ChannelIcon } from '@/components/ui/channel-icon';
 
 const channelLabel: Record<SceneChannel, string> = {
   line: 'LINE OA',
@@ -183,8 +184,9 @@ export function ScenePlayer() {
                 {scene.customer.handle ?? channelLabel[scene.channel]}
               </span>
               <span
-                className={`rounded-full border px-2 py-0.5 font-mono text-[10px] uppercase tracking-[0.14em] ${channelChromeClass[scene.channel]}`}
+                className={`inline-flex items-center gap-1.5 rounded-full border px-2 py-0.5 font-mono text-[10px] uppercase tracking-[0.14em] ${channelChromeClass[scene.channel]}`}
               >
+                <ChannelIcon channel={scene.channel} size={11} />
                 {channelLabel[scene.channel]}
               </span>
             </div>
