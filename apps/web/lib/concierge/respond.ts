@@ -35,9 +35,19 @@ const MAX_HISTORY_TURNS = Number(process.env.CONCIERGE_MAX_TURNS ?? 20);
 const MODEL = process.env.CONCIERGE_MODEL ?? 'gemini-2.5-flash';
 
 function approxTokens(text: string): number {
-  // Rough heuristic: ~4 chars/token for mixed Thai/English. Replace with the
-  // model's reported usage when streaming the API is added.
-  return Math.ceil(text.length / 4);
+  // Heuristic split: Thai code points (U+0E00-U+0E7F) tokenize at roughly
+  // 2.5 chars/token (per Gemini observations); Latin + numerics at ~4
+  // chars/token. The previous flat /4 estimate undercounted Thai-heavy
+  // payloads by ~30%.
+  if (!text) return 0;
+  let thai = 0;
+  let other = 0;
+  for (let i = 0; i < text.length; i++) {
+    const cp = text.charCodeAt(i);
+    if (cp >= 0x0e00 && cp <= 0x0e7f) thai += 1;
+    else other += 1;
+  }
+  return Math.ceil(thai / 2.5 + other / 4);
 }
 
 function buildHistoryMessages(history: ProspectMessage[]) {

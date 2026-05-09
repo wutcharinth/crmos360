@@ -17,35 +17,56 @@ export function Hero() {
         <div>
           <span className="label-mono mb-8 inline-flex items-center gap-2.5 rounded-full border border-hairline bg-paper px-3 py-1.5 text-ink-2 normal-case tracking-widest">
             <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-mint shadow-[0_0_8px_hsl(var(--mint))]" />
-            AI OS · Customer Operations
+            <span className="th-only">Confidence-gated · ตอบเองเมื่อมั่นใจ</span>
+            <span className="en-only">Confidence-gated · replies on its own when sure</span>
           </span>
 
           <h1 className="display-xl text-ink">
-            ระบบเดียวที่
-            <br />
-            <em className="not-italic font-semibold text-warm">คิด ตอบ ทำ</em>
-            <br />
-            และเรียนรู้
+            <span className="th-only">
+              AI ตอบเองเมื่อ
+              <br />
+              <em className="not-italic font-semibold text-warm">มั่นใจ.</em>
+              <br />
+              ส่งให้คุณรีวิวเมื่อ<em className="not-italic font-semibold text-warm">ต้องคิด.</em>
+            </span>
+            <span className="en-only">
+              AI replies when{' '}
+              <em className="not-italic font-semibold text-warm">it&rsquo;s sure.</em>
+              <br />
+              Drafts when{' '}
+              <em className="not-italic font-semibold text-warm">it&rsquo;s not.</em>
+              <br />
+              Escalates when it matters.
+            </span>
           </h1>
 
           <p className="lead mt-6">
-            รวมแชทลูกค้าจาก LINE OA, Facebook, Instagram, TikTok Shop, Shopee, Lazada
-            และช่องทางอื่นไว้ในระบบเดียว พร้อม AI Agents ที่ตอบเองได้เมื่อมั่นใจ
-            รออนุมัติเมื่อเคสสำคัญ ทำงานหลังบ้าน และเรียนรู้จากธุรกิจของคุณอย่างต่อเนื่อง
+            <span className="th-only">
+              ตอบเองที่ความมั่นใจ &gt;90% · ส่งดราฟต์ให้คุณ approve ที่ 70-90% · ส่งต่อทีมเมื่อต่ำกว่านั้น.
+              รวม LINE OA, Shopee, TikTok Shop, Lazada, Instagram, Facebook, Email ในกล่องเดียว.
+              ทำงานหลังบ้าน เรียนรู้จากทีมคุณ ทุกสัปดาห์.
+            </span>
+            <span className="en-only">
+              Auto-replies above 90% confidence. Drafts for human approval at 70-90%. Escalates the rest.
+              All channels (LINE OA, Shopee, TikTok Shop, Lazada, IG, FB, Email) in one inbox. The AI
+              learns from your team&rsquo;s edits every week.
+            </span>
           </p>
 
           <div className="mt-9 flex items-center gap-3.5">
             <Link
-              href="/signup"
+              href="/demo"
               className="rounded-lg bg-warm px-5 py-3.5 text-[14px] font-medium text-paper shadow-cta/0 transition-all duration-200 hover:-translate-y-px hover:bg-warm-2 hover:shadow-cta"
             >
-              ขอดูเดโม FlowAIOS
+              <span className="th-only">เริ่มกับ LINE OA ใน 30 นาที</span>
+              <span className="en-only">Start with your LINE OA in 30 minutes</span>
             </Link>
             <Link
-              href="#ai-os"
+              href="/demo"
               className="group inline-flex items-center gap-1.5 px-3 py-3.5 text-[14px] text-ink transition-colors hover:text-warm"
             >
-              ดู USP หลัก
+              <span className="th-only">ดู demo 30 วินาที</span>
+              <span className="en-only">Watch 30s demo</span>
               <span className="transition-transform duration-200 group-hover:translate-x-1">
                 →
               </span>

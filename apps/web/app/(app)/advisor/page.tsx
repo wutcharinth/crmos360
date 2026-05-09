@@ -1,7 +1,5 @@
 import Link from 'next/link';
-import { listAdvisorRules } from '@/lib/api';
-import { dashboardMetrics } from '@/lib/mocks/fixtures/dashboard';
-import { findLesson } from '@/lib/mocks/fixtures/lessons';
+import { listAdvisorRules, getDashboardMetrics, getLesson } from '@/lib/api';
 import { RuleRow } from '@/components/advisor/RuleRow';
 import { RulesTable } from '@/components/advisor/RulesTable';
 
@@ -9,11 +7,11 @@ export const dynamic = 'force-dynamic';
 
 type SourceParam = `cluster:${string}` | `lesson:${string}` | `rule:${string}` | string;
 
-function parsePrefill(source: string | undefined): {
+async function parsePrefill(source: string | undefined): Promise<{
   kind: 'cluster' | 'lesson' | 'rule' | 'unknown';
   id: string;
   representative: string;
-} | null {
+} | null> {
   if (!source) return null;
   const idx = source.indexOf(':');
   if (idx === -1) return null;
@@ -28,10 +26,11 @@ function parsePrefill(source: string | undefined): {
 
   let representative = id;
   if (kind === 'cluster') {
-    const c = dashboardMetrics.recurringQuestions.find((q) => q.id === id);
+    const metrics = await getDashboardMetrics();
+    const c = metrics.recurringQuestions.find((q) => q.id === id);
     if (c) representative = c.representativeMessage;
   } else if (kind === 'lesson') {
-    const l = findLesson(id);
+    const l = await getLesson(id);
     if (l) representative = l.statement;
   }
   return { kind, id, representative };
@@ -43,7 +42,7 @@ export default async function AdvisorPage({
   searchParams: Promise<{ source?: SourceParam }>;
 }) {
   const params = await searchParams;
-  const prefill = parsePrefill(params.source);
+  const prefill = await parsePrefill(params.source);
 
   const [pending, active] = await Promise.all([
     listAdvisorRules('pending'),

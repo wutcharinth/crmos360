@@ -1,8 +1,6 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { getAdvisorRule } from '@/lib/api';
-import { dashboardMetrics } from '@/lib/mocks/fixtures/dashboard';
-import { findLesson } from '@/lib/mocks/fixtures/lessons';
+import { getAdvisorRule, getDashboardMetrics, getLesson } from '@/lib/api';
 import { ConfidencePill } from '@/components/advisor/ConfidencePill';
 
 export const dynamic = 'force-dynamic';
@@ -22,12 +20,18 @@ export default async function AdvisorRuleDetailPage({
   const rule = await getAdvisorRule(id);
   if (!rule) notFound();
 
-  // Source cross-link payload.
-  const cluster =
+  // Source cross-link payload — uses the API client so production reads
+  // from real Supabase instead of fixtures.
+  const [cluster, lesson] = await Promise.all([
     rule.source === 'cluster' && rule.sourceId
-      ? dashboardMetrics.recurringQuestions.find((c) => c.id === rule.sourceId)
-      : null;
-  const lesson = rule.source === 'lesson' && rule.sourceId ? findLesson(rule.sourceId) : null;
+      ? getDashboardMetrics().then((m) =>
+          m.recurringQuestions.find((c) => c.id === rule.sourceId),
+        )
+      : Promise.resolve(null),
+    rule.source === 'lesson' && rule.sourceId
+      ? getLesson(rule.sourceId)
+      : Promise.resolve(null),
+  ]);
 
   return (
     <div className="mx-auto grid max-w-6xl gap-9 px-8 py-10 lg:grid-cols-[1fr_320px]">

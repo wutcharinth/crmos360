@@ -44,15 +44,43 @@ export default function AdminOverviewPage() {
         </p>
       </header>
 
-      {/* KPI grid — varied scale, not identical cards */}
+      {/* Activity — editorial layout: two oversized stats inline, two
+          secondary stats below as dl rows. Not a 4-card grid. */}
       <section>
         <p className="label-mono">Activity · live</p>
-        <div className="mt-4 grid gap-x-10 gap-y-7 sm:grid-cols-2 lg:grid-cols-4">
-          <Kpi big label="Prospect threads" value={fmt(kpis.totalThreads)} sub={`${kpis.openThreads} open · ${kpis.handedOffThreads} handed off`} />
-          <Kpi big label="Conversations" value={fmt(kpis.totalMessages)} sub={`${kpis.aiMessages} AI replies`} />
-          <Kpi label="Last 24h" value={fmt(kpis.threadsLast24h)} sub="new threads" />
-          <Kpi label="Last 7d" value={fmt(kpis.threadsLast7d)} sub="new threads" />
+        <div className="mt-5 flex flex-col flex-wrap gap-y-7 sm:flex-row sm:items-baseline sm:gap-x-14">
+          <div>
+            <p className="text-[clamp(38px,4vw,52px)] font-semibold leading-none tracking-tight tabular-nums text-ink">
+              {fmt(kpis.totalThreads)}
+            </p>
+            <p className="mt-2 text-[12.5px] text-ink-2">
+              prospect threads · {kpis.openThreads} open · {kpis.handedOffThreads} handed off
+            </p>
+          </div>
+          <span className="hidden font-mono text-mute sm:block">|</span>
+          <div>
+            <p className="text-[clamp(38px,4vw,52px)] font-semibold leading-none tracking-tight tabular-nums text-ink">
+              {fmt(kpis.totalMessages)}
+            </p>
+            <p className="mt-2 text-[12.5px] text-ink-2">
+              conversations · {kpis.aiMessages} AI replies
+            </p>
+          </div>
         </div>
+        <dl className="mt-7 grid grid-cols-2 gap-x-9 gap-y-2 border-t border-hairline pt-5 sm:grid-cols-4">
+          <SubStat label="Last 24h" value={fmt(kpis.threadsLast24h)} sub="new threads" />
+          <SubStat label="Last 7d" value={fmt(kpis.threadsLast7d)} sub="new threads" />
+          <SubStat
+            label="AI replies"
+            value={`${kpis.totalMessages > 0 ? Math.round((kpis.aiMessages / kpis.totalMessages) * 100) : 0}%`}
+            sub="of total volume"
+          />
+          <SubStat
+            label="Flagged"
+            value={fmt(kpis.flaggedJailbreakCount)}
+            sub="prompt-injection attempts"
+          />
+        </dl>
       </section>
 
       <section>
@@ -203,6 +231,16 @@ export default function AdminOverviewPage() {
           </tbody>
         </table>
       </section>
+    </div>
+  );
+}
+
+function SubStat({ label, value, sub }: { label: string; value: string; sub: string }) {
+  return (
+    <div>
+      <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-mute">{label}</p>
+      <p className="mt-1 text-[18px] font-semibold tabular-nums text-ink">{value}</p>
+      <p className="mt-0.5 text-[11px] text-mute">{sub}</p>
     </div>
   );
 }
