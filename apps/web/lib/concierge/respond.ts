@@ -1,4 +1,4 @@
-import { generate } from '@crmos360/ai';
+import { generateDetailed } from '@crmos360/ai';
 import {
   appendMessage,
   computeCostMicros,
@@ -98,14 +98,37 @@ export async function respond(input: ConciergeReplyInput): Promise<ConciergeRepl
 
   let replyText: string;
   try {
-    const result = await generate({
+    // Generous budget on first attempt; Thai needs more headroom than Latin.
+    let res = await generateDetailed({
       messages,
       provider: 'gemini',
       model: MODEL,
       temperature: 0.4,
-      maxTokens: 600,
+      maxTokens: 1024,
     });
-    replyText = result.text;
+
+    // Retry once with a bigger ceiling if the model self-truncated.
+    if (res.finishReason === 'max_tokens') {
+      res = await generateDetailed({
+        messages,
+        provider: 'gemini',
+        model: MODEL,
+        temperature: 0.4,
+        maxTokens: 1800,
+      });
+    }
+
+    replyText = res.text.trim();
+
+    // If still cut, drop the dangling clause so the bubble doesn't end
+    // mid-word. Empty / safety-blocked → polite Thai/EN fallback.
+    if (!replyText || res.safetyBlocked) {
+      replyText = input.message.match(/[ก-๙]/)
+        ? 'ขออนุญาตเช็คข้อมูลให้สักครู่นะคะ ขอเป็นเรื่องอื่นที่เกี่ยวกับ FlowAIOS ก่อนนะคะ'
+        : "Let me check on that for a moment — could you ask me about something else FlowAIOS-related in the meantime?";
+    } else if (res.finishReason === 'max_tokens' && !endsCleanly(replyText)) {
+      replyText = trimDanglingClause(replyText);
+    }
   } catch (err) {
     const fallback =
       input.message.match(/[ก-๙]/)
@@ -157,4 +180,34 @@ export async function respond(input: ConciergeReplyInput): Promise<ConciergeRepl
     tokensOutput,
     costMicros,
   };
+}
+
+/** True if the text ends with a sentence terminator or polite Thai closer. */
+function endsCleanly(s: string): boolean {
+  const trimmed = s.trim();
+  return /[.!?…ๆ"')\]]$|ค่ะ$|ครับ$|นะคะ$|นะครับ$/u.test(trimmed);
+}
+
+/** Drop a dangling clause past the last sentence boundary so the bubble
+ * doesn't end mid-word when the model self-truncated. */
+function trimDanglingClause(s: string): string {
+  const trimmed = s.trim();
+  const lastTerminator = Math.max(
+    trimmed.lastIndexOf('.'),
+    trimmed.lastIndexOf('!'),
+    trimmed.lastIndexOf('?'),
+    trimmed.lastIndexOf('ค่ะ'),
+    trimmed.lastIndexOf('ครับ'),
+    trimmed.lastIndexOf('นะคะ'),
+    trimmed.lastIndexOf('นะครับ'),
+  );
+  if (lastTerminator > Math.floor(trimmed.length * 0.4)) {
+    // Keep the terminator + its full Thai polite suffix.
+    const suffix = ['ค่ะ', 'ครับ', 'นะคะ', 'นะครับ'].find(
+      (s) => trimmed.slice(lastTerminator, lastTerminator + s.length) === s,
+    );
+    const cut = lastTerminator + (suffix ? suffix.length : 1);
+    return trimmed.slice(0, cut).trim();
+  }
+  return trimmed;
 }

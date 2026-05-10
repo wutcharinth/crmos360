@@ -97,6 +97,34 @@ export function Concierge() {
 
   if (!hydrated) return null;
 
+  const resetChat = async () => {
+    if (sending) return;
+    // Clear local first so the user sees the empty state immediately.
+    setMessages([]);
+    setError(null);
+    setHanded(false);
+    setInput('');
+    try {
+      localStorage.removeItem(THREAD_LS_KEY);
+    } catch {
+      // ignore (private mode)
+    }
+    try {
+      await fetch('/api/concierge/reset', { method: 'POST' });
+    } catch {
+      // network error is non-fatal — the local state is already cleared,
+      // and the next POST simply lands on the existing server thread.
+    }
+    // Re-seed the welcome message via the open-effect by toggling.
+    setMessages([
+      {
+        direction: 'out',
+        body:
+          'สวัสดีค่ะ I\'m the FlowAIOS concierge. Ask me anything about pricing, channels, or how confidence-gated AI works. ตอบไทยหรือ English ได้นะคะ. Tap "Contact team" if you want a human reply instead.',
+      },
+    ]);
+  };
+
   const send = async (text: string) => {
     if (!text.trim() || sending) return;
     setSending(true);
@@ -222,6 +250,32 @@ export function Concierge() {
             </div>
           </div>
           <div className="flex items-center gap-1">
+            {mode === 'chat' && messages.length > 1 && (
+              <button
+                type="button"
+                onClick={resetChat}
+                disabled={sending}
+                title="Start a new chat"
+                aria-label="Start a new chat"
+                className="inline-flex items-center gap-1 rounded-md border border-hairline bg-paper-2 px-2 py-1.5 text-[11px] font-medium text-ink transition-colors hover:border-warm/40 hover:text-warm disabled:cursor-not-allowed disabled:opacity-40"
+              >
+                <svg
+                  width="12"
+                  height="12"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  aria-hidden
+                >
+                  <path d="M3 12a9 9 0 1 0 3-6.7L3 8" />
+                  <path d="M3 3v5h5" />
+                </svg>
+                <span>New</span>
+              </button>
+            )}
             {mode === 'chat' && (
               <button
                 type="button"
