@@ -10,27 +10,132 @@ interface Message {
   pending?: boolean;
 }
 
-const STARTERS_TH = [
-  'ราคาเริ่มต้นเท่าไรคะ',
-  'รองรับ LINE OA + Shopee + TikTok ไหม',
-  'AI ตอบเองเมื่อไรบ้าง',
-];
+type Lang = 'th' | 'en';
 
-const STARTERS_EN = [
-  'How does confidence-gated reply work?',
-  'What channels do you support?',
-  "What's the pricing?",
-];
+const STARTERS: Record<Lang, string[]> = {
+  th: [
+    'ราคาเริ่มต้นเท่าไรคะ',
+    'รองรับ LINE OA + Shopee + TikTok ไหม',
+    'AI ตอบเองเมื่อไรบ้าง',
+  ],
+  en: [
+    'How does confidence-gated reply work?',
+    'What channels do you support?',
+    "What's the pricing?",
+  ],
+};
+
+const GREETING: Record<Lang, string> = {
+  th:
+    'สวัสดีค่ะ ดิฉันคือ FlowAIOS Concierge ถามได้ทุกเรื่องเกี่ยวกับราคา ช่องทางที่รองรับ หรือวิธีที่ AI ตัดสินใจตอบ ตอบไทยหรือ English ก็ได้ค่ะ ถ้าต้องการคุยกับทีมจริง กดปุ่ม "ติดต่อทีม" ได้เลย',
+  en:
+    "Hi, I'm the FlowAIOS Concierge. Ask me anything about pricing, channels, or how the AI decides when to reply. Thai or English — both work. Tap \"Contact team\" if you'd rather talk to a human.",
+};
+
+const UI: Record<Lang, {
+  online: string;
+  handed: string;
+  contact: string;
+  newChat: string;
+  ask: string;
+  send: string;
+  sending: string;
+  close: string;
+  placeholder: string;
+  error: string;
+  back: string;
+  thanks: string;
+  thanksBody: string;
+  backToChat: string;
+  contactTitle: string;
+  contactBody: string;
+  fieldName: string;
+  fieldContact: string;
+  fieldMessage: string;
+  contactPlaceholder: string;
+  handedBanner: string;
+}> = {
+  th: {
+    online: 'ออนไลน์',
+    handed: 'ส่งต่อแล้ว · ทีมกำลังตอบ',
+    contact: 'ติดต่อทีม',
+    newChat: 'ใหม่',
+    ask: 'ถาม FlowAIOS',
+    send: 'ส่ง',
+    sending: 'กำลังส่ง…',
+    close: 'ปิด',
+    placeholder: 'พิมพ์ข้อความ',
+    error: 'ขออภัย AI ขัดข้องชั่วคราว ลองอีกครั้งนะคะ',
+    back: '← ย้อนกลับ',
+    thanks: 'ขอบคุณค่ะ · ส่งแล้ว',
+    thanksBody: 'ทีม FlowAIOS จะติดต่อกลับภายใน 24 ชั่วโมง ระหว่างนี้คุยต่อได้เลยค่ะ',
+    backToChat: 'กลับไปแชท',
+    contactTitle: 'ติดต่อทีม',
+    contactBody: 'ฝากอีเมล LINE ID หรือเบอร์โทร ทีมจะติดต่อกลับภายใน 24 ชั่วโมงค่ะ',
+    fieldName: 'ชื่อ (ไม่บังคับ)',
+    fieldContact: 'อีเมล · LINE ID · เบอร์โทร',
+    fieldMessage: 'ข้อความ (ไม่บังคับ)',
+    contactPlaceholder: 'hi@you.co · @lineid · 081-234-5678',
+    handedBanner: 'ทีมจะติดต่อกลับเร็ว ๆ นี้ค่ะ',
+  },
+  en: {
+    online: 'Online',
+    handed: 'Handed off · team replying',
+    contact: 'Contact team',
+    newChat: 'New',
+    ask: 'Ask FlowAIOS',
+    send: 'Send',
+    sending: 'Sending…',
+    close: 'Close',
+    placeholder: 'Type a message',
+    error: 'Sorry, the concierge had a hiccup. Please try again.',
+    back: '← Back',
+    thanks: 'Thanks · sent',
+    thanksBody:
+      'The FlowAIOS team will reach out within 24 hours. You can keep chatting in the meantime.',
+    backToChat: 'Back to chat',
+    contactTitle: 'Contact the team',
+    contactBody:
+      "Drop your email, LINE ID, or phone. We'll reach out within 24 hours.",
+    fieldName: 'Name (optional)',
+    fieldContact: 'Email · LINE ID · phone',
+    fieldMessage: 'Message (optional)',
+    contactPlaceholder: 'hi@you.co · @lineid · 081-234-5678',
+    handedBanner: 'The team will follow up soon.',
+  },
+};
 
 const THREAD_LS_KEY = 'flowaios-concierge-thread';
 
 type Mode = 'chat' | 'contact-form' | 'contact-sent';
 
-function looksThai(s: string): boolean {
-  return /[ก-๙]/.test(s);
+function isLang(v: unknown): v is Lang {
+  return v === 'th' || v === 'en';
+}
+
+/**
+ * Reactively reads document.documentElement.lang. Updated by the marketing
+ * LangToggle without a page reload — we observe the attribute mutation so
+ * the concierge greeting/starters/UI swap immediately.
+ */
+function useLang(): Lang {
+  const [lang, setLang] = useState<Lang>('th');
+  useEffect(() => {
+    const sync = () => {
+      const v = document.documentElement.lang;
+      setLang(isLang(v) ? v : 'th');
+    };
+    sync();
+    const observer = new MutationObserver(sync);
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['lang'] });
+    return () => observer.disconnect();
+  }, []);
+  return lang;
 }
 
 export function Concierge() {
+  const lang = useLang();
+  const t = UI[lang];
   const [open, setOpen] = useState(false);
   const [hydrated, setHydrated] = useState(false);
   /**
@@ -68,8 +173,7 @@ export function Concierge() {
       setMessages([
         {
           direction: 'out',
-          body:
-            'สวัสดีค่ะ I\'m the FlowAIOS concierge. Ask me anything about pricing, channels, or how confidence-gated AI works. ตอบไทยหรือ English ได้นะคะ. Tap "Contact team" if you want a human reply instead.',
+          body: GREETING[lang],
         },
       ]);
       // Hydrate any prior thread for this visitor.
@@ -137,7 +241,7 @@ export function Concierge() {
       {
         direction: 'out',
         body:
-          'สวัสดีค่ะ I\'m the FlowAIOS concierge. Ask me anything about pricing, channels, or how confidence-gated AI works. ตอบไทยหรือ English ได้นะคะ. Tap "Contact team" if you want a human reply instead.',
+          GREETING[lang],
       },
     ]);
   };
@@ -197,7 +301,7 @@ export function Concierge() {
           if (cur && cur.direction === 'out' && cur.pending) {
             next[i] = {
               direction: 'out',
-              body: 'Sorry, the concierge had a hiccup. Please try again.',
+              body: t.error,
             };
             break;
           }
@@ -214,8 +318,7 @@ export function Concierge() {
     send(input);
   };
 
-  const starters =
-    messages.length <= 1 ? (looksThai(input) ? STARTERS_TH : STARTERS_EN) : [];
+  const starters = messages.length <= 1 ? STARTERS[lang] : [];
 
   return (
     <>
@@ -224,7 +327,7 @@ export function Concierge() {
         type="button"
         onClick={() => setOpen((v) => !v)}
         aria-expanded={open}
-        aria-label={open ? 'Close concierge' : 'Open concierge'}
+        aria-label={open ? t.close : t.ask}
         className={`fixed z-30 inline-flex items-center gap-2 rounded-full border border-hairline bg-paper px-4 py-2.5 text-[13px] font-medium text-ink shadow-soft transition-all hover:-translate-y-0.5 hover:border-warm/40 bottom-[max(16px,env(safe-area-inset-bottom))] right-4 sm:bottom-6 sm:right-6 ${
           open || drawerOpen ? 'translate-y-1 opacity-0 pointer-events-none' : ''
         }`}
@@ -233,7 +336,7 @@ export function Concierge() {
           <span className="absolute inline-flex h-full w-full animate-pulse rounded-full bg-warm opacity-50" />
           <span className="relative inline-flex h-2 w-2 rounded-full bg-warm" />
         </span>
-        Ask FlowAIOS
+        {t.ask}
       </button>
 
       {/*
@@ -248,7 +351,7 @@ export function Concierge() {
         aria-modal={open}
         aria-label="FlowAIOS concierge"
         aria-hidden={!open}
-        className={`fixed inset-0 z-40 flex flex-col border-hairline bg-paper transition-all duration-200 ease-out sm:inset-auto sm:bottom-6 sm:right-6 sm:h-[600px] sm:max-h-[calc(100vh-48px)] sm:w-[min(380px,calc(100vw-32px))] sm:rounded-2xl sm:border sm:shadow-terminal ${
+        className={`fixed inset-0 z-40 flex flex-col border-hairline bg-paper transition-all duration-200 ease-out sm:inset-auto sm:bottom-6 sm:right-6 sm:h-[min(720px,calc(100vh-48px))] sm:w-[min(400px,calc(100vw-32px))] sm:rounded-2xl sm:border sm:shadow-terminal lg:h-[min(760px,calc(100vh-48px))] lg:w-[420px] ${
           open ? 'translate-y-0 opacity-100' : 'pointer-events-none translate-y-3 opacity-0'
         }`}
       >
@@ -262,7 +365,7 @@ export function Concierge() {
             <div>
               <p className="text-[13.5px] font-semibold text-ink">FlowAIOS Concierge</p>
               <p className="font-mono text-[10px] uppercase tracking-widest text-mute">
-                {handed ? 'handed off · team replying' : 'Online'}
+                {handed ? t.handed : t.online}
               </p>
             </div>
           </div>
@@ -272,8 +375,8 @@ export function Concierge() {
                 type="button"
                 onClick={resetChat}
                 disabled={sending}
-                title="Start a new chat"
-                aria-label="Start a new chat"
+                title={t.newChat}
+                aria-label={t.newChat}
                 className="inline-flex items-center gap-1 rounded-md border border-hairline bg-paper-2 px-2 py-1.5 text-[11px] font-medium text-ink transition-colors hover:border-warm/40 hover:text-warm disabled:cursor-not-allowed disabled:opacity-40"
               >
                 <svg
@@ -290,7 +393,7 @@ export function Concierge() {
                   <path d="M3 12a9 9 0 1 0 3-6.7L3 8" />
                   <path d="M3 3v5h5" />
                 </svg>
-                <span>New</span>
+                <span>{t.newChat}</span>
               </button>
             )}
             {mode === 'chat' && (
@@ -299,13 +402,13 @@ export function Concierge() {
                 onClick={() => setMode('contact-form')}
                 className="rounded-md border border-hairline bg-paper-2 px-2.5 py-1.5 text-[11px] font-medium text-ink transition-colors hover:border-warm/40 hover:text-warm"
               >
-                Contact team
+                {t.contact}
               </button>
             )}
             <button
               type="button"
               onClick={() => setOpen(false)}
-              aria-label="Close"
+              aria-label={t.close}
               className="rounded-md p-2 text-mute transition-colors hover:bg-paper-2 hover:text-ink"
             >
               <span aria-hidden>×</span>
@@ -328,6 +431,7 @@ export function Concierge() {
             onSubmit={onSubmit}
             inputId={inputId}
             onContact={() => setMode('contact-form')}
+            t={t}
           />
         )}
 
@@ -338,24 +442,22 @@ export function Concierge() {
               setHanded(true);
               setMode('contact-sent');
             }}
+            t={t}
           />
         )}
 
         {mode === 'contact-sent' && (
           <div className="flex-1 space-y-4 px-6 py-9 text-center">
             <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-mint">
-              Thanks · sent
+              {t.thanks}
             </p>
-            <p className="text-[14px] leading-relaxed text-ink">
-              The FlowAIOS team will reach out within 24 hours. You can keep chatting in
-              the meantime.
-            </p>
+            <p className="text-[14px] leading-relaxed text-ink">{t.thanksBody}</p>
             <button
               type="button"
               onClick={() => setMode('chat')}
               className="rounded-md border border-hairline bg-paper-2 px-4 py-2 text-[12.5px] text-ink hover:border-warm/40 hover:text-warm"
             >
-              Back to chat
+              {t.backToChat}
             </button>
           </div>
         )}
@@ -378,6 +480,7 @@ function ChatBody({
   onSubmit,
   inputId,
   onContact,
+  t,
 }: {
   messages: Message[];
   scrollRef: React.MutableRefObject<HTMLDivElement | null>;
@@ -392,6 +495,7 @@ function ChatBody({
   onSubmit: (e: FormEvent) => void;
   inputId: string;
   onContact: () => void;
+  t: (typeof UI)[Lang];
 }) {
   return (
     <>
@@ -425,7 +529,7 @@ function ChatBody({
 
       {handed && (
         <div className="border-t border-hairline bg-mint-soft/60 px-5 py-2.5 text-[12px] text-mint">
-          ทีมจะติดต่อกลับเร็วๆ นี้ค่ะ. The team will follow up soon.
+          {t.handedBanner}
         </div>
       )}
 
@@ -456,7 +560,7 @@ function ChatBody({
         className="flex items-end gap-2 border-t border-hairline px-4 pt-3 pb-[max(12px,env(safe-area-inset-bottom))] sm:pb-3"
       >
         <label htmlFor={inputId} className="sr-only">
-          Message
+          {t.placeholder}
         </label>
         {/*
           font-size: 16px on mobile prevents iOS Safari from auto-zooming the
@@ -476,7 +580,7 @@ function ChatBody({
           }}
           rows={1}
           disabled={sending}
-          placeholder="พิมพ์ข้อความ · type a message"
+          placeholder={t.placeholder}
           className="max-h-32 flex-1 resize-none rounded-md border border-hairline bg-paper px-3 py-2 text-[16px] text-ink placeholder:text-mute focus:border-warm focus:outline-none sm:text-[14px]"
         />
         <button
@@ -484,7 +588,7 @@ function ChatBody({
           disabled={sending || !input.trim()}
           className="rounded-md bg-warm px-3.5 py-2 text-[12.5px] font-medium text-paper transition-colors hover:bg-warm-2 disabled:cursor-not-allowed disabled:opacity-40"
         >
-          Send
+          {t.send}
         </button>
       </form>
     </>
@@ -494,9 +598,11 @@ function ChatBody({
 function ContactForm({
   onCancel,
   onSent,
+  t,
 }: {
   onCancel: () => void;
   onSent: () => void;
+  t: (typeof UI)[Lang];
 }) {
   const [name, setName] = useState('');
   const [contact, setContact] = useState('');
@@ -537,24 +643,21 @@ function ContactForm({
       className="flex-1 space-y-4 overflow-y-auto px-5 pt-5 pb-[max(20px,env(safe-area-inset-bottom))] sm:pb-5"
     >
       <div>
-        <p className="label-mono">Contact the team</p>
-        <p className="mt-2 text-[13px] leading-relaxed text-ink-2">
-          Drop your email, LINE ID, or phone. We&rsquo;ll reach out within 24 hours.
-          ทีมจะติดต่อกลับภายใน 24 ชม.ค่ะ
-        </p>
+        <p className="label-mono">{t.contactTitle}</p>
+        <p className="mt-2 text-[13px] leading-relaxed text-ink-2">{t.contactBody}</p>
       </div>
 
       <div className="space-y-3">
-        <Field label="ชื่อ · Name (optional)" value={name} onChange={setName} />
+        <Field label={t.fieldName} value={name} onChange={setName} />
         <Field
-          label="อีเมล · LINE ID · เบอร์โทร"
+          label={t.fieldContact}
           required
-          placeholder="hi@you.co · @lineid · 081-234-5678"
+          placeholder={t.contactPlaceholder}
           value={contact}
           onChange={setContact}
         />
         <Field
-          label="ข้อความ · Message (optional)"
+          label={t.fieldMessage}
           textarea
           value={message}
           onChange={setMessage}
@@ -571,14 +674,14 @@ function ContactForm({
           onClick={onCancel}
           className="text-[13px] text-mute hover:text-ink"
         >
-          ← back
+          {t.back}
         </button>
         <button
           type="submit"
           disabled={submitting || !contact.trim()}
           className="rounded-md bg-warm px-4 py-2 text-[12.5px] font-medium text-paper transition-colors hover:bg-warm-2 disabled:cursor-not-allowed disabled:opacity-40"
         >
-          {submitting ? 'Sending…' : 'Send'}
+          {submitting ? t.sending : t.send}
         </button>
       </div>
     </form>
