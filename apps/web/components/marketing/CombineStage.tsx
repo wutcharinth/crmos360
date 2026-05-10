@@ -1,4 +1,5 @@
-import { ChannelIcon, type ChannelKey } from '@/components/ui/channel-icon';
+import { type ChannelKey } from '@/components/ui/channel-icon';
+import { BrandLogo } from '@/components/ui/brand-logo';
 
 /**
  * Hero illustration: customer channels converging into a single FlowAIOS inbox.
@@ -11,9 +12,10 @@ import { ChannelIcon, type ChannelKey } from '@/components/ui/channel-icon';
  * line coords match the percentage-positioned orbs 1:1. Orb positions tuned
  * post-Playwright QA so none of the six overlap the centre inbox card.
  *
- * Channel iconography is the shared <ChannelIcon> component — same brand-
- * styled tiles used in ChannelStrip / VerticalLanding / inbox surfaces, so
- * the hero stage matches the rest of the marketing site exactly.
+ * Channel iconography goes through <BrandLogo>: it tries to load an
+ * officially-licensed asset from /public/channel-logos/{key}.svg and
+ * falls back to the in-house <ChannelIcon> stylized tile if the file is
+ * missing. Drop press-kit SVGs into that directory and they take over.
  *
  * Static visual + CSS animations only. No JS, no client-side state.
  */
@@ -175,7 +177,7 @@ export function CombineStage() {
           aria-hidden
           className={`absolute z-[3] flex h-14 w-14 items-center justify-center rounded-2xl border border-hairline bg-paper shadow-soft ${ch.pos} ${ch.phase === 'a' ? 'flowaios-orb-a' : 'flowaios-orb-b'}`}
         >
-          <ChannelIcon channel={ch.key} size={28} />
+          <BrandLogo channel={ch.key} size={28} />
           <span className="absolute -bottom-5 left-1/2 -translate-x-1/2 whitespace-nowrap font-mono text-[10px] tracking-[0.04em] text-mute">
             {ch.label}
           </span>
@@ -205,7 +207,7 @@ export function CombineStage() {
               key={i}
               className="grid grid-cols-[20px_1fr_auto] items-center gap-2.5 border-b border-hairline px-3 py-2.5 last:border-b-0"
             >
-              <ChannelIcon channel={r.channel} size={20} />
+              <BrandLogo channel={r.channel} size={20} />
               <div className="min-w-0">
                 <div className="text-[12.5px] font-medium text-ink">
                   {r.name}
