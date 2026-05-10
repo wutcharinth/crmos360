@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { ChannelBadge } from '@/components/app/channel-badge';
+import { ChatBody } from '@/components/ui/chat-body';
 import {
   demoConversations,
   demoCustomers,
@@ -83,7 +84,7 @@ export default async function TryInboxThreadPage({
                       : 'bg-paper-2 text-foreground'
                   }`}
                 >
-                  <p className="whitespace-pre-wrap break-words">{m.body}</p>
+                  <p className="whitespace-pre-wrap break-words"><ChatBody text={m.body} /></p>
                   <div className="mt-1 flex items-center gap-2 text-[10px] opacity-60">
                     <time>
                       {new Date(m.sentAt).toLocaleTimeString([], {

@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useId, useRef, useState, type FormEvent } from 'react';
+import { ChatBody as RichText } from '@/components/ui/chat-body';
 
 interface Message {
   direction: 'in' | 'out';
@@ -416,7 +417,7 @@ function ChatBody({
                     : 'bg-paper-2 text-ink'
               }`}
             >
-              {m.pending ? <PendingDots /> : m.body}
+              {m.pending ? <PendingDots /> : <RichText text={m.body} />}
             </div>
           </div>
         ))}

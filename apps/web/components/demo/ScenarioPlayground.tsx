@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { SCENARIOS, type ScenarioId } from '@/lib/demo/scenarios';
+import { ChatBody } from '@/components/ui/chat-body';
 import { CategoryIcon } from './CategoryIcon';
 
 /**
@@ -306,7 +307,7 @@ export function ScenarioPlayground({ initialLang = 'th' }: { initialLang?: 'th' 
                     </span>
                   ) : (
                     <>
-                      {m.content}
+                      <ChatBody text={m.content} />
                       {m.failed && m.retrySource && (
                         <button
                           type="button"

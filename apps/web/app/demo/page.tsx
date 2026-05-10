@@ -92,38 +92,76 @@ export default function DemoPage() {
         {/* Explore grid */}
         <section className="border-t border-hairline bg-paper-2 py-16">
           <div className="mx-auto w-[min(1240px,calc(100%-48px))]">
-            <p className="label-mono">Explore the rest</p>
+            <p className="label-mono">
+              <span className="th-only">ฟีเจอร์เพิ่มเติม</span>
+              <span className="en-only">Explore the rest</span>
+            </p>
             <h2 className="display-md mt-3 max-w-[28ch]">
-              Where the AI goes after it replies
+              <span className="th-only">
+                หลังจาก AI ตอบแชทแล้ว
+                <br />
+                ยังช่วยทีมทำงานต่อได้อีก
+              </span>
+              <span className="en-only">Where the AI goes after it replies</span>
             </h2>
             <p className="lead mt-4 max-w-[58ch]">
-              Confidence-gated reply is the wedge. The Learning layer is the moat. Each of
-              these is a real surface in FlowAIOS, not a roadmap promise.
+              <span className="th-only">
+                FlowAIOS ไม่ได้หยุดแค่การตอบแชท แต่ช่วยรวมช่องทาง จดจำข้อมูลลูกค้า
+                เรียนรู้จากการแก้ไขของทีม และเตรียมระบบควบคุมข้อมูลสำหรับธุรกิจที่ต้องการความมั่นใจมากขึ้น
+              </span>
+              <span className="en-only">
+                Confidence-gated reply is the wedge. The Learning layer is the moat. Each of
+                these is a real surface in FlowAIOS, not a roadmap promise.
+              </span>
             </p>
 
             <div className="mt-10 grid gap-5 lg:grid-cols-2">
               <ExploreCard
-                kicker="Inbox · shipped"
-                title="Unified inbox across LINE OA, Shopee, TikTok, Lazada, IG, FB, Email"
-                body="One place to triage. Channel chips configurable per vertical, escalation routing per agent."
+                kicker={{ th: 'INBOX · พร้อมใช้งานแล้ว', en: 'Inbox · shipped' }}
+                title={{
+                  th: 'รวมทุกแชทจาก LINE OA, Shopee, TikTok, Lazada, IG, FB และ Email ไว้ในที่เดียว',
+                  en: 'Unified inbox across LINE OA, Shopee, TikTok, Lazada, IG, FB, Email',
+                }}
+                body={{
+                  th: 'จัดการทุกช่องทางจากกล่องเดียว ตั้งค่าแยกตามทีม แยกตามสินค้า หรือแยกตามช่องทางได้ พร้อมส่งต่อเคสให้คนที่รับผิดชอบโดยอัตโนมัติ',
+                  en: 'One place to triage. Channel chips configurable per vertical, escalation routing per agent.',
+                }}
                 href="/for/customer-ops"
               />
               <ExploreCard
-                kicker="Intelligence · coming"
-                title="Recurring questions become rules"
-                body="The Configuration Advisor watches what your team edits and proposes auto-rules with confidence + sample matches. Approve once, applies forever."
+                kicker={{ th: 'INTELLIGENCE · กำลังจะมา', en: 'Intelligence · coming' }}
+                title={{
+                  th: 'คำถามที่เจอบ่อย กลายเป็นกฎอัตโนมัติ',
+                  en: 'Recurring questions become rules',
+                }}
+                body={{
+                  th: 'Configuration Advisor จะดูว่าทีมของคุณแก้คำตอบ AI อย่างไร แล้วเสนอ Auto-rule พร้อมระดับความมั่นใจและตัวอย่างเคสให้ตรวจ เมื่ออนุมัติครั้งเดียว ระบบจะนำไปใช้ต่อได้ทันที',
+                  en: 'The Configuration Advisor watches what your team edits and proposes auto-rules with confidence + sample matches. Approve once, applies forever.',
+                }}
                 href="/for/customer-ops#features"
               />
               <ExploreCard
-                kicker="Customer memory · shipped"
-                title="The AI remembers ‘แพ้ paraben’ across all channels"
-                body="Auto-extracted from past conversations, embedded into every reply. Returning customers get continuity, not a fresh script."
+                kicker={{ th: 'CUSTOMER MEMORY · พร้อมใช้งานแล้ว', en: 'Customer memory · shipped' }}
+                title={{
+                  th: 'AI จำข้อมูลลูกค้าได้ข้ามทุกช่องทาง',
+                  en: 'The AI remembers ‘แพ้ paraben’ across all channels',
+                }}
+                body={{
+                  th: 'ระบบดึงข้อมูลสำคัญจากบทสนทนาเก่า เช่น “แพ้ paraben” แล้วนำมาใช้ในคำตอบถัดไป ลูกค้าที่กลับมาซื้อซ้ำจึงได้รับประสบการณ์ต่อเนื่อง ไม่ต้องเริ่มเล่าใหม่ทุกครั้ง',
+                  en: 'Auto-extracted from past conversations, embedded into every reply. Returning customers get continuity, not a fresh script.',
+                }}
                 href="/for/commerce"
               />
               <ExploreCard
-                kicker="PDPA control plane · coming"
-                title="Audit log, residency, retention, fact-approval queue"
-                body="Built for the buyer who needs to clear an internal risk review. TH or SG residency, signed DPA template, exportable audit."
+                kicker={{ th: 'PDPA CONTROL PLANE · กำลังจะมา', en: 'PDPA control plane · coming' }}
+                title={{
+                  th: 'มี Audit log, Data residency, Retention และคิวอนุมัติข้อมูลสำคัญ',
+                  en: 'Audit log, residency, retention, fact-approval queue',
+                }}
+                body={{
+                  th: 'ออกแบบมาสำหรับทีมที่ต้องผ่านการตรวจด้านความเสี่ยงและข้อมูลส่วนบุคคล รองรับ Data residency ในไทยหรือสิงคโปร์ เทมเพลต DPA และ Audit log ที่ export ได้',
+                  en: 'Built for the buyer who needs to clear an internal risk review. TH or SG residency, signed DPA template, exportable audit.',
+                }}
                 href="/for/customer-ops#features"
               />
             </div>
@@ -165,15 +203,17 @@ export default function DemoPage() {
   );
 }
 
+type Bi = { th: string; en: string };
+
 function ExploreCard({
   kicker,
   title,
   body,
   href,
 }: {
-  kicker: string;
-  title: string;
-  body: string;
+  kicker: Bi;
+  title: Bi;
+  body: Bi;
   href: string;
 }) {
   return (
@@ -182,12 +222,20 @@ function ExploreCard({
       className="group block rounded-xl border border-hairline bg-paper p-6 transition-all hover:-translate-y-0.5 hover:border-warm/30 hover:shadow-soft"
     >
       <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-warm">
-        {kicker}
+        <span className="th-only">{kicker.th}</span>
+        <span className="en-only">{kicker.en}</span>
       </p>
-      <h3 className="mt-3 text-[17px] font-semibold leading-snug text-ink">{title}</h3>
-      <p className="mt-3 text-[13.5px] leading-relaxed text-ink-2">{body}</p>
+      <h3 className="mt-3 text-[17px] font-semibold leading-snug text-ink">
+        <span className="th-only">{title.th}</span>
+        <span className="en-only">{title.en}</span>
+      </h3>
+      <p className="mt-3 text-[13.5px] leading-relaxed text-ink-2">
+        <span className="th-only">{body.th}</span>
+        <span className="en-only">{body.en}</span>
+      </p>
       <p className="mt-4 font-mono text-[10px] uppercase tracking-widest text-mute group-hover:text-warm">
-        Read more →
+        <span className="th-only">อ่านต่อ →</span>
+        <span className="en-only">Read more →</span>
       </p>
     </Link>
   );
