@@ -242,11 +242,10 @@ export function Nav() {
           </Link>
           <Link
             href="/signup"
-            className="inline-flex items-center gap-1.5 rounded-md bg-warm px-3.5 py-2 text-[13px] font-medium text-paper transition-colors hover:bg-warm-2 sm:px-4 sm:text-[13.5px]"
+            className="inline-flex items-center rounded-md bg-warm px-3 py-1.5 text-[12.5px] font-medium text-paper transition-colors hover:bg-warm-2 sm:px-3.5 sm:py-2 sm:text-[13px]"
           >
             <span className="th-only">เริ่มฟรี</span>
             <span className="en-only">Start free</span>
-            <span aria-hidden className="text-[14px] leading-none">→</span>
           </Link>
           <button
             type="button"

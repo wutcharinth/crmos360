@@ -350,16 +350,15 @@ export function Concierge() {
         onClick={() => setOpen((v) => !v)}
         aria-expanded={open}
         aria-label={open ? t.close : t.ask}
-        title={t.ask}
-        className={`fixed z-30 inline-flex items-center justify-center gap-2 rounded-full border border-hairline bg-paper text-ink shadow-soft transition-all hover:-translate-y-0.5 hover:border-warm/40 bottom-[max(16px,env(safe-area-inset-bottom))] right-4 h-11 w-11 p-0 text-0 sm:bottom-6 sm:right-6 sm:h-auto sm:w-auto sm:px-4 sm:py-2.5 sm:text-[13px] sm:font-medium ${
+        className={`fixed z-30 inline-flex items-center gap-2 rounded-full border border-hairline bg-paper px-4 py-2.5 text-[13px] font-medium text-ink shadow-soft transition-all hover:-translate-y-0.5 hover:border-warm/40 bottom-[max(16px,env(safe-area-inset-bottom))] right-4 sm:bottom-6 sm:right-6 ${
           open || drawerOpen ? 'translate-y-1 opacity-0 pointer-events-none' : ''
         }`}
       >
-        <span className="relative flex h-2.5 w-2.5 sm:h-2 sm:w-2">
+        <span className="relative flex h-2 w-2">
           <span className="absolute inline-flex h-full w-full animate-pulse rounded-full bg-warm opacity-50" />
-          <span className="relative inline-flex h-full w-full rounded-full bg-warm" />
+          <span className="relative inline-flex h-2 w-2 rounded-full bg-warm" />
         </span>
-        <span className="hidden sm:inline">{t.ask}</span>
+        {t.ask}
       </button>
 
       {/*
