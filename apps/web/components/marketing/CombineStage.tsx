@@ -24,19 +24,26 @@ interface ChannelDef {
   key: ChannelKey;
   label: string;
   pos: string;
-  /** Centre point in 100x100 viewBox so SVG lines align with the orb. */
+  /** Orb centre in 100x100 viewBox so SVG lines align with the orb. */
   cx: number;
   cy: number;
+  /**
+   * Port — where the dashed line terminates near the inbox card edge.
+   * We stop short of the card centre so the lines are visible (the card
+   * is opaque and would otherwise bury them).
+   */
+  px: number;
+  py: number;
   phase: 'a' | 'b';
 }
 
 const CHANNELS: ChannelDef[] = [
-  { key: 'line',      label: 'LINE OA',  pos: 'left-[6%] top-[10%]',     cx: 10, cy: 14, phase: 'a' },
-  { key: 'shopee',    label: 'Shopee',   pos: 'right-[6%] top-[8%]',     cx: 90, cy: 12, phase: 'b' },
-  { key: 'tiktok',    label: 'TikTok',   pos: 'left-[3%] top-[44%]',     cx: 7,  cy: 48, phase: 'a' },
-  { key: 'lazada',    label: 'Lazada',   pos: 'right-[3%] top-[42%]',    cx: 88, cy: 46, phase: 'b' },
-  { key: 'facebook',  label: 'Facebook', pos: 'left-[16%] bottom-[6%]',  cx: 20, cy: 90, phase: 'a' },
-  { key: 'instagram', label: 'Instagram', pos: 'right-[16%] bottom-[4%]', cx: 80, cy: 92, phase: 'b' },
+  { key: 'line',      label: 'LINE OA',   pos: 'left-[2%] top-[6%] sm:left-[6%] sm:top-[10%]',       cx: 10, cy: 14, px: 24, py: 32, phase: 'a' },
+  { key: 'shopee',    label: 'Shopee',    pos: 'right-[2%] top-[4%] sm:right-[6%] sm:top-[8%]',      cx: 90, cy: 12, px: 76, py: 32, phase: 'b' },
+  { key: 'tiktok',    label: 'TikTok',    pos: 'left-[2%] top-[42%] sm:left-[3%] sm:top-[44%]',      cx: 7,  cy: 48, px: 22, py: 51, phase: 'a' },
+  { key: 'lazada',    label: 'Lazada',    pos: 'right-[2%] top-[40%] sm:right-[3%] sm:top-[42%]',    cx: 88, cy: 46, px: 78, py: 50, phase: 'b' },
+  { key: 'facebook',  label: 'Facebook',  pos: 'left-[6%] bottom-[6%] sm:left-[16%] sm:bottom-[6%]', cx: 20, cy: 90, px: 28, py: 76, phase: 'a' },
+  { key: 'instagram', label: 'Instagram', pos: 'right-[6%] bottom-[6%] sm:right-[16%] sm:bottom-[4%]', cx: 80, cy: 92, px: 72, py: 76, phase: 'b' },
 ];
 
 interface InboxRow {
@@ -164,8 +171,8 @@ export function CombineStage() {
             key={c.key}
             x1={c.cx}
             y1={c.cy}
-            x2={INBOX_CX}
-            y2={INBOX_CY}
+            x2={c.px}
+            y2={c.py}
             className="flowaios-stage-line"
           />
         ))}
@@ -175,17 +182,17 @@ export function CombineStage() {
         <div
           key={ch.key}
           aria-hidden
-          className={`absolute z-[3] flex h-14 w-14 items-center justify-center rounded-2xl border border-hairline bg-paper shadow-soft ${ch.pos} ${ch.phase === 'a' ? 'flowaios-orb-a' : 'flowaios-orb-b'}`}
+          className={`absolute z-[3] flex h-11 w-11 items-center justify-center rounded-2xl border border-hairline bg-paper shadow-soft sm:h-14 sm:w-14 ${ch.pos} ${ch.phase === 'a' ? 'flowaios-orb-a' : 'flowaios-orb-b'}`}
         >
-          <BrandLogo channel={ch.key} size={28} />
-          <span className="absolute -bottom-5 left-1/2 -translate-x-1/2 whitespace-nowrap font-mono text-[10px] tracking-[0.04em] text-mute">
+          <BrandLogo channel={ch.key} size={22} className="sm:!h-7 sm:!w-7" />
+          <span className="absolute -bottom-5 left-1/2 -translate-x-1/2 whitespace-nowrap font-mono text-[9.5px] tracking-[0.04em] text-mute sm:text-[10px]">
             {ch.label}
           </span>
         </div>
       ))}
 
       <div
-        className="absolute left-1/2 top-[55%] z-[4] w-[64%] min-w-[260px] -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-xl border border-hairline bg-paper shadow-terminal"
+        className="absolute left-1/2 top-[55%] z-[4] w-[58%] min-w-0 -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-xl border border-hairline bg-paper shadow-terminal sm:w-[64%] sm:min-w-[260px]"
       >
         <div className="flex items-center gap-2 border-b border-hairline bg-paper-2 px-3 py-2.5">
           <span
