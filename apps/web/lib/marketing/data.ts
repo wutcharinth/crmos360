@@ -56,11 +56,26 @@ export const heroThreads: ReadonlyArray<HeroThread> = [
 ];
 
 // ── Hero promises ────────────────────────────────────────────────────────────
+// Bilingual to match the rest of the hero's lang-toggle pattern. Phrasing is
+// customer-language (what the buyer would say to themselves), not feature-
+// language — anchored in the AI Admin framing.
 export const heroPromises = [
-  'Auto-Reply แบบควบคุมได้',
-  'Self-improving Memory',
-  'AI-managed Backoffice',
-  'Marketplace Workflows',
+  {
+    th: 'ตอบคำถามซ้ำ ๆ ให้เอง',
+    en: 'Answers repetitive questions automatically',
+  },
+  {
+    th: 'ให้ทีมอนุมัติเมื่อ AI ยังไม่ชัวร์',
+    en: 'Asks for approval when AI is not sure',
+  },
+  {
+    th: 'จำลูกค้า ประวัติแชท และโทนแบรนด์',
+    en: 'Remembers customers, chat history, and brand tone',
+  },
+  {
+    th: 'รวมทุกช่องทางขายไว้ในที่เดียว',
+    en: 'Brings every sales channel into one inbox',
+  },
 ] as const;
 
 // ── AI OS Principles ─────────────────────────────────────────────────────────
