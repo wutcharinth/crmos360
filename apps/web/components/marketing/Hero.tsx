@@ -1,7 +1,6 @@
 import Link from 'next/link';
-import { channels, heroPromises } from '@/lib/marketing/data';
-import { LiveThreads } from '@/components/marketing/LiveThreads';
-import { ChannelIcon } from '@/components/ui/channel-icon';
+import { heroPromises } from '@/lib/marketing/data';
+import { CombineStage } from '@/components/marketing/CombineStage';
 
 export function Hero() {
   return (
@@ -83,99 +82,8 @@ export function Hero() {
           </div>
         </div>
 
-        {/* Terminal artifact */}
-        <div
-          aria-hidden
-          className="relative overflow-hidden rounded-2xl border border-hairline bg-paper shadow-terminal"
-        >
-          {/* top accent line */}
-          <div className="absolute inset-x-0 top-0 h-px bg-[linear-gradient(90deg,transparent,hsl(var(--warm)/0.40),transparent)]" />
-
-          {/* term bar */}
-          <div className="flex items-center justify-between border-b border-hairline bg-paper-2 px-3.5 py-3">
-            <div className="flex items-center gap-3.5">
-              <div className="flex gap-1.5">
-                <span className="h-2.5 w-2.5 rounded-full bg-[#FF5F57]" />
-                <span className="h-2.5 w-2.5 rounded-full bg-[#FEBC2E]" />
-                <span className="h-2.5 w-2.5 rounded-full bg-[#28C840]" />
-              </div>
-              <span className="font-mono text-[11px] tracking-wide text-mute">
-                <b className="font-medium text-ink-2">flowaios.app</b> / inbox
-              </span>
-            </div>
-            <span className="inline-flex items-center gap-2 rounded-full border border-mint/22 bg-mint-soft px-2.5 py-1 font-mono text-[10.5px] uppercase tracking-[0.12em] text-mint">
-              <span className="h-1.5 w-1.5 rounded-full bg-mint shadow-[0_0_6px_hsl(var(--mint)/0.5)]" />
-              AI OS Online
-            </span>
-          </div>
-
-          {/* term grid: 110px | 1fr | 230px on desktop, single col on mobile */}
-          <div className="grid-bg grid min-h-[420px] grid-cols-1 md:grid-cols-[110px_1fr_230px]">
-            {/* channel rail */}
-            <div className="flex flex-col gap-1.5 border-hairline px-3 py-3.5 md:border-r">
-              <div className="label-mono px-1.5 pb-2">Channels</div>
-              {channels.map((ch) => (
-                <div
-                  key={ch.name}
-                  className={`flex items-center justify-between gap-2 rounded-md px-2.5 py-2 text-[12.5px] transition-colors ${
-                    ch.active
-                      ? 'bg-warm-soft text-ink shadow-[inset_0_0_0_1px_hsl(var(--warm)/0.3)]'
-                      : 'text-ink-2 hover:bg-paper-2 hover:text-ink'
-                  }`}
-                >
-                  <span className="inline-flex items-center gap-2">
-                    <ChannelIcon channel={ch.key} size={14} />
-                    {ch.name}
-                  </span>
-                  <small
-                    className={`font-mono text-[10.5px] tabular-nums ${
-                      ch.active ? 'text-warm' : 'text-mute'
-                    }`}
-                  >
-                    {ch.count}
-                  </small>
-                </div>
-              ))}
-            </div>
-
-            {/* threads — animated via LiveThreads client component */}
-            <LiveThreads />
-
-            {/* intel */}
-            <div className="flex flex-col gap-3 px-3.5 py-3.5">
-              <div className="label-mono pb-1">Advisor</div>
-              <div className="rounded-lg border border-hairline bg-paper px-3.5 py-3">
-                <h4 className="mb-1.5 text-[11px] font-semibold uppercase tracking-[0.06em] text-ink">
-                  Auto-Reply rule
-                </h4>
-                <p className="text-[12px] leading-snug text-ink-2">
-                  เปิด Auto-Reply สำหรับ tracking request ที่มั่นใจ &gt;85%
-                </p>
-                <div className="relative mt-2.5 h-1 overflow-hidden rounded-full bg-paper-3">
-                  <span className="absolute inset-y-0 left-0 w-[91%] rounded-full bg-gradient-to-r from-warm to-mint" />
-                  <small className="absolute -top-4 right-1.5 font-mono text-[10px] tracking-wide text-mint">
-                    91%
-                  </small>
-                </div>
-              </div>
-              <div className="rounded-lg border border-hairline bg-paper px-3.5 py-3">
-                <h4 className="mb-1.5 text-[11px] font-semibold uppercase tracking-[0.06em] text-ink">
-                  Customer Memory
-                </h4>
-                <ul className="m-0 list-none p-0">
-                  {['ชอบโปรส่งฟรี', 'เคย complaint เรื่องส่งช้า', 'tone สุภาพและกระชับ'].map((m) => (
-                    <li
-                      key={m}
-                      className="relative py-0.5 pl-3.5 text-[12px] text-ink-2 before:absolute before:left-0 before:top-3 before:h-px before:w-1.5 before:bg-warm"
-                    >
-                      {m}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            </div>
-          </div>
-        </div>
+        {/* Hero stage: customer channels converging into the FlowAIOS inbox */}
+        <CombineStage />
       </div>
     </section>
   );
